@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  rtsp-simple-server:
+    build:
+      context: /Users/yahya/Desktop/prog/vms/server/rtsp_server
+      dockerfile: Dockerfile
+    image: rtsp-simple-server
+    environment:
+      - RTSP_PROTOCOLS=tcp
+    ports:
+      - "8554:8554"
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: [ "npm", "run", "dev" ]
+    depends_on:
+      - rtsp-simple-server
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./Users/yahya/Desktop/prog/vms/server/server.cjs
