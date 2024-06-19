@@ -32,7 +32,7 @@ const cloudfront = 'https://d1gx8w5c0cotxv.cloudfront.net'
 const docClient = new AWS.DynamoDB.DocumentClient(awsConfig);
 
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client', 'index.js'));
+    res.sendFile(path.join(__dirname, '../client/src', 'index.js'));
 });
 
 
