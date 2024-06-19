@@ -18,7 +18,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Login />} />
             <Route
-              path="https://vms-demoteam.onrender.com/Home"
+              path="/Home"
               element={
                 <PrivateRoute>
                   <Home />
@@ -26,7 +26,7 @@ function App() {
               }
             />
             <Route
-              path="https://vms-demoteam.onrender.com/Live"
+              path="/Live"
               element={
                 <PrivateRoute>
                   <LiveVideo />
@@ -34,7 +34,7 @@ function App() {
               }
             />
             <Route
-              path="https://vms-demoteam.onrender.com/Archive"
+              path="/Archive"
               element={
                 <PrivateRoute>
                   <Archive />
@@ -42,7 +42,7 @@ function App() {
               }
             />
             <Route
-              path="https://vms-demoteam.onrender.com/Devices"
+              path="/Devices"
               element={
                 <PrivateRoute>
                   <Devices />
@@ -50,7 +50,7 @@ function App() {
               }
             />
             <Route
-              path="https://vms-demoteam.onrender.com/Add-device"
+              path="/Add-device"
               element={
                 <PrivateRoute>
                   <AddDevice />
@@ -58,7 +58,7 @@ function App() {
               }
             />
             <Route
-              path='https://vms-demoteam.onrender.com/Add-recording'
+              path='/Add-recording'
               element={
                 <PrivateRoute>
                   <AddRecording />
@@ -66,7 +66,7 @@ function App() {
               }
             />
             <Route
-              path='https://vms-demoteam.onrender.com/youtube-to-rtsp'
+              path='/youtube-to-rtsp'
               element={
                 <PrivateRoute>
                   <AddExternalVid />
