@@ -27,7 +27,12 @@
     "ytdl-core": "^4.11.5"
   },
   "scripts": {
-    "dev": "nodemon server.cjs",
-    "build": "npm i"
+    "dev": "concurrently \"npm run start-server\" \"npm run start-go\" \"npm run start-docker\"",
+    "start-server": "nodemon server.cjs",
+    "start-go": "cd RTSPtoWeb && GO111MODULE=on go run *.go",
+    "start-docker": "./start_docker.sh"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
   }
 }

@@ -272,15 +272,10 @@ function startFFmpeg(channel) {
         '-loglevel', 'debug',
         '-i', hlsInputUrl,
         '-c:v', 'libx264',
-        '-profile:v', 'baseline',
-        '-b:v', '512k',
-        '-r', '15',
-        '-g', '30',
-        '-s', '640x480',
         '-an',
         '-f', 'rtsp',
         '-rtsp_transport', 'tcp',
-        'rtsp://localhost:554/stream'
+        'rtsp://localhost:8554/stream'
     ];
 
     ffmpegProcess = spawn('ffmpeg', ffmpegArgs);
