@@ -30,7 +30,8 @@
     "dev": "concurrently \"npm run start-server\" \"npm run start-go\" \"npm run start-docker\"",
     "start-server": "nodemon server.cjs",
     "start-go": "cd RTSPtoWeb && GO111MODULE=on go run *.go",
-    "start-docker": "./start_docker.sh"
+    "start-docker": "./start_docker.sh",
+    "build": "npm install"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
