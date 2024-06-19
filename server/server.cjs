@@ -31,9 +31,8 @@ const cloudfront = 'https://d1gx8w5c0cotxv.cloudfront.net'
 
 const docClient = new AWS.DynamoDB.DocumentClient(awsConfig);
 
-
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'client/public', 'index.html'));
+    res.sendFile(path.join(__dirname, '../client/public', 'index.html'));
 });
 
 app.post("https://vms-demoteam.onrender.com/Login", (req, res) => {
