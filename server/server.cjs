@@ -30,11 +30,11 @@ const s3 = new AWS.S3({
 const cloudfront = 'https://d1gx8w5c0cotxv.cloudfront.net'
 
 const docClient = new AWS.DynamoDB.DocumentClient(awsConfig);
-/*
+
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/public', 'index.html'));
+    res.sendFile(path.join(__dirname, '../client', 'index.js'));
 });
-*/
+
 
 
 app.post("/Login", (req, res) => {
@@ -236,7 +236,7 @@ app.post("/record/stop", async (req, res) => {
     }
 });
 
-app.get('https://vms-demoteam.onrender.com/recordings', async (req, res) => {
+app.get('/recordings', async (req, res) => {
     const params = {
         Bucket: 'airbusdemorecordings',
     };
