@@ -22,6 +22,10 @@ function Login() {
         }
     }
 
+    if (isLoggedIn) {
+        navigate('/Home')
+    }
+
     return (
         <div className="login-container">
             <div id="title">

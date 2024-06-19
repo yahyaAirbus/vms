@@ -6,7 +6,7 @@ export const PrivateRoute = ({ children }) => {
     const { isLoggedIn } = useAuth();
 
     if (!isLoggedIn) {
-        return <Navigate to="https://vms-demoteam.onrender.com/" />;
+        return <Navigate to="/" />;
     }
 
     return children;
