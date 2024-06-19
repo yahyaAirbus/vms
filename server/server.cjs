@@ -33,7 +33,7 @@ const docClient = new AWS.DynamoDB.DocumentClient(awsConfig);
 
 
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'client`', 'index.html'));
+    res.sendFile(path.join(__dirname, 'client/public', 'index.html'));
 });
 
 app.post("https://vms-demoteam.onrender.com/Login", (req, res) => {
