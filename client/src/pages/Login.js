@@ -16,7 +16,7 @@ function Login() {
         setError(''); // Clear previous error
         const success = await login(email, password);
         if (success) {
-            navigate('/Home');
+            navigate('https://vms-demoteam.onrender.com/Home');
         } else {
             setError('Email or password is incorrect.');
         }
