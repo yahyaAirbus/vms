@@ -11,36 +11,36 @@ export const SidebarData = [
     {
         title: 'Home',
         icon: <RiHome6Line />,
-        link: 'https://vms-demoteam.onrender.com/Home',
+        link: '/Home',
     },
     {
         title: 'Live',
         icon: <HiOutlineVideoCamera />,
-        link: 'https://vms-demoteam.onrender.com/Live',
+        link: '/Live',
     },
     {
         title: 'Archive',
         icon: < IoIosRecording />,
-        link: 'https://vms-demoteam.onrender.com/Archive',
+        link: '/Archive',
     },
     {
         title: 'Devices',
         icon: <GiCctvCamera />,
-        link: 'https://vms-demoteam.onrender.com/Devices',
+        link: '/Devices',
     },
     {
         title: 'Add device',
         icon: <IoMdAdd />,
-        link: 'https://vms-demoteam.onrender.com/Add-device',
+        link: '/Add-device',
     },
     {
         title: 'Add recording',
         icon: <FiUploadCloud />,
-        link: 'https://vms-demoteam.onrender.com/Add-recording',
+        link: '/Add-recording',
     },
     {
         title: 'Add external video',
         icon: <AiOutlineVideoCameraAdd />,
-        link: 'https://vms-demoteam.onrender.com/youtube-to-rtsp',
+        link: '/youtube-to-rtsp',
     }
 ]
