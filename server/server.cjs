@@ -31,6 +31,10 @@ const cloudfront = 'https://d1gx8w5c0cotxv.cloudfront.net'
 const docClient = new AWS.DynamoDB.DocumentClient(awsConfig);
 
 
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+});
+
 app.post("/Login", (req, res) => {
     const { email, password } = req.body;
 
