@@ -136,6 +136,10 @@ app.get("/channel", async (req, res) => {
     }
 });
 
+app.get('/test', (req, res) => {
+    res.json("hello world")
+})
+
 app.get("/name", async (req, res) => {
     try {
         const scanParams = {
