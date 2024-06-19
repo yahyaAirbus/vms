@@ -11,7 +11,7 @@ function Home() {
     const handleLinkClick = async (link) => {
         setActiveLink(link);
         try {
-            const response = await axios.get(`http://localhost:3000/${link.toLowerCase()}`);
+            const response = await axios.get(`https://vms-demo.onrender.com/${link.toLowerCase()}`);
             setData(response.data);
         } catch (error) {
             console.error('Error fetching data:', error);

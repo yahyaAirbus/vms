@@ -5,7 +5,7 @@ import { PiShareFatFill } from "react-icons/pi";
 const Stream = ({ channel }) => {
     const handleStream = async () => {
         try {
-            const response = await axios.post('http://localhost:3001/switch_stream', { channel });
+            const response = await axios.post('https://vms-demo.onrender.com/switch_stream', { channel });
             console.log(`Switched to channel ${channel}:`, response.data.message);
         } catch (error) {
             console.error('Error switching stream:', error);

@@ -16,7 +16,7 @@ function AddDeviceForm() {
         };
 
         try {
-            const response = await axios.post('http://localhost:3001/device', deviceData);
+            const response = await axios.post('https://vms-demo.onrender.com/device', deviceData);
             console.log(response.data);
             toast.success('Device added successfully!', {
                 position: "top-right",
