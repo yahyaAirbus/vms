@@ -35,6 +35,11 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../client/public', 'index.html'));
 });
 */
+
+app.get('*', (req, res) => {
+    res.redirect('/');
+});
+
 app.post("/Login", (req, res) => {
     const { email, password } = req.body;
 
