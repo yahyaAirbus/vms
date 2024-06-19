@@ -35,7 +35,7 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../client/public', 'index.html'));
 });
 
-app.post("https://vms-demoteam.onrender.com/Login", (req, res) => {
+app.post("/Login", (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -68,7 +68,7 @@ app.post("https://vms-demoteam.onrender.com/Login", (req, res) => {
     });
 });
 
-app.post("https://vms-demoteam.onrender.com/device", async (req, res) => {
+app.post("/device", async (req, res) => {
     const { name, rtspUrl } = req.body;
 
     if (!name || !rtspUrl) {
@@ -117,7 +117,7 @@ app.post("https://vms-demoteam.onrender.com/device", async (req, res) => {
     }
 });
 
-app.get("https://vms-demoteam.onrender.com/channel", async (req, res) => {
+app.get("/channel", async (req, res) => {
     try {
         const scanParams = {
             TableName: "demo_devices",
@@ -136,7 +136,7 @@ app.get("https://vms-demoteam.onrender.com/channel", async (req, res) => {
     }
 });
 
-app.get("https://vms-demoteam.onrender.com/name", async (req, res) => {
+app.get("/name", async (req, res) => {
     try {
         const scanParams = {
             TableName: "demo_devices",
@@ -158,7 +158,7 @@ app.get("https://vms-demoteam.onrender.com/name", async (req, res) => {
     }
 });
 
-app.delete("https://vms-demoteam.onrender.com/device/:channel", async (req, res) => {
+app.delete("/device/:channel", async (req, res) => {
     const { channel } = req.params;
 
     const deleteParams = {
@@ -184,7 +184,7 @@ app.delete("https://vms-demoteam.onrender.com/device/:channel", async (req, res)
 let outputFilename;
 let ffmpegProcess;
 
-app.post("https://vms-demoteam.onrender.com/record/start", (req, res) => {
+app.post("/record/start", (req, res) => {
     const { channel } = req.body;
     if (!channel) {
         return res.status(400).json({ message: "Channel number is required" });
@@ -207,7 +207,7 @@ app.post("https://vms-demoteam.onrender.com/record/start", (req, res) => {
     res.status(200).json({ message: "Recording started" });
 });
 
-app.post("https://vms-demoteam.onrender.com/record/stop", async (req, res) => {
+app.post("/record/stop", async (req, res) => {
     if (ffmpegProcess) {
         ffmpegProcess.kill('SIGINT');
     }
@@ -248,7 +248,7 @@ app.get('https://vms-demoteam.onrender.com/recordings', async (req, res) => {
     }
 });
 
-app.delete('https://vms-demoteam.onrender.com/recordings/:key', (req, res) => {
+app.delete('/recordings/:key', (req, res) => {
     const key = req.params.key;
     const params = {
         Bucket: 'airbusdemorecordings',
@@ -297,7 +297,7 @@ function startFFmpeg(channel) {
     });
 }
 
-app.post("https://vms-demoteam.onrender.com/switch_stream", async (req, res) => {
+app.post("/switch_stream", async (req, res) => {
     const { channel } = req.body;
 
     if (!channel) {
@@ -355,7 +355,7 @@ async function youtubeToRtsp(youtubeUrl, name) {
     }
 }
 
-app.post('https://vms-demoteam.onrender.com/youtube-to-rtsp', async (req, res) => {
+app.post('/youtube-to-rtsp', async (req, res) => {
     const { youtubeUrl, name } = req.body;
 
     if (!youtubeUrl || !name) {
