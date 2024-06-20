@@ -29,8 +29,8 @@
   "scripts": {
     "dev": "concurrently \"npm run start-server\" \"npm run start-go\" \"npm run start-docker\"",
     "start-server": "nodemon server.cjs",
-    "start-go": "cd RTSPtoWeb && GO111MODULE=on go run *.go",
-    "start-docker": "./start_docker.sh",
+    "start-go": "sh -c 'if ! command -v go &> /dev/null; then wget https://dl.google.com/go/go1.16.5.linux-amd64.tar.gz && sudo tar -xvf go1.16.5.linux-amd64.tar.gz && sudo mv go /usr/local && echo \"export GOROOT=/usr/local/go\" >> ~/.profile && echo \"export GOPATH=$HOME/go\" >> ~/.profile && echo \"export PATH=$GOPATH/bin:$GOROOT/bin:$PATH\" >> ~/.profile && source ~/.profile && rm go1.16.5.linux-amd64.tar.gz; fi && cd RTSPtoWeb && GO111MODULE=on go run *.go'",
+    "start-docker": "sh -c 'if ! command -v docker &> /dev/null; then sudo apt-get update && sudo apt-get install -y ca-certificates curl gnupg lsb-release && curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && echo \"deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null && sudo apt-get update && sudo apt-get install -y docker-ce docker-ce-cli containerd.io; fi && cd rtsp_server && docker run --rm -it -e RTSP_PROTOCOLS=tcp -p 8554:8554 rtsp-simple-server'",
     "build": "npm install"
   },
   "devDependencies": {
