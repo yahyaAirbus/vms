@@ -33,6 +33,9 @@ const docClient = new AWS.DynamoDB.DocumentClient(awsConfig);
 
 app.use(express.static(path.join(__dirname, './client', 'build')));
 
+app.get('/test', (req, res) => {
+    res.sendFile(path.join(__dirname, './client/build', 'index.html'));
+});
 
 app.post("/Login", (req, res) => {
     const { email, password } = req.body;
