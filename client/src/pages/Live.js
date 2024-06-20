@@ -19,10 +19,10 @@ const LiveVideo = () => {
     useEffect(() => {
         const fetchLiveChannels = async () => {
             try {
-                const response = await axios.get('https://vms-demo.onrender.com/channel');
+                const response = await axios.get('/channel');
                 setLiveChannels(response.data.channels);
 
-                const nameResponse = await axios.get('https://vms-demo.onrender.com/name');
+                const nameResponse = await axios.get('/name');
                 const names = {};
                 nameResponse.data.names.forEach(({ channel, name }) => {
                     names[channel] = name;
