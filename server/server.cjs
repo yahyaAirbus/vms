@@ -31,9 +31,7 @@ const cloudfront = 'https://d1gx8w5c0cotxv.cloudfront.net'
 
 const docClient = new AWS.DynamoDB.DocumentClient(awsConfig);
 
-app.get("/Live", (req, res) => {
-    res.redirect("https://vms-demoteam.onrender.com/Live")
-})
+app.use(express.static(path.join(__dirname, './client', 'build')));
 
 
 app.post("/Login", (req, res) => {
