@@ -1,14 +1,14 @@
-
 FROM node:22.2-alpine
 
-RUN apk update && apk add ffmpeg
+RUN apk update && apk add ffmpeg bash
 
 WORKDIR /usr/src/app
 
 COPY package*.json ./
-COPY . .
 
 RUN npm install
+
+COPY . .
 
 EXPOSE 3001
 
