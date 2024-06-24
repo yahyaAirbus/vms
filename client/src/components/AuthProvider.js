@@ -11,7 +11,7 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (email, password) => {
         try {
-            const response = await axios.post('https://18.191.200.18:3001/Login', { email, password });
+            const response = await axios.post('http://18.191.200.18:3001/Login', { email, password });
 
             if (response.status === 200) {
                 setIsLoggedIn(true);

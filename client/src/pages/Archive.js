@@ -15,7 +15,7 @@ function Archive() {
     useEffect(() => {
         const fetchRecordings = async () => {
             try {
-                const response = await axios.get('https://18.191.200.18:3001/recordings');
+                const response = await axios.get('http://18.191.200.18:3001/recordings');
                 console.log('Recordings:', response.data);
                 setRecordings(response.data);
             } catch (error) {
@@ -28,7 +28,7 @@ function Archive() {
 
     const handleDelete = async (recordingKey) => {
         try {
-            await axios.delete(`https://18.191.200.18:3001/recordings/${recordingKey}`);
+            await axios.delete(`http://18.191.200.18:3001/recordings/${recordingKey}`);
             setRecordings(recordings.filter(recording => recording.key !== recordingKey));
             toast.success('Recording deleted successfully');
         } catch (error) {
