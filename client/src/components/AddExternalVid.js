@@ -17,7 +17,7 @@ function AddExternalVid() {
         };
 
         try {
-            const response = await axios.post('https://vms-demo.onrender.com/youtube-to-rtsp', streamData);
+            const response = await axios.post('https://18.191.200.18:3001/youtube-to-rtsp', streamData);
             console.log(response.data);
             toast.success('Stream added successfully!', {
                 position: "top-right",

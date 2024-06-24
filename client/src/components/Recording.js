@@ -8,7 +8,7 @@ const Recording = ({ channel }) => {
     const startRecording = async (channelId) => {
         setIsRecording(true);
         try {
-            await axios.post('https://vms-demo.onrender.com/record/start', { channel: channelId });
+            await axios.post('https://18.191.200.18:3001/record/start', { channel: channelId });
         } catch (error) {
             console.error('Error starting recording:', error);
         }
@@ -18,7 +18,7 @@ const Recording = ({ channel }) => {
     const stopRecording = async () => {
         setIsRecording(false);
         try {
-            await axios.post('https://vms-demo.onrender.com/record/stop');
+            await axios.post('https://18.191.200.18:3001/record/stop');
         } catch (error) {
             console.error('Error stopping recording:', error);
         }
