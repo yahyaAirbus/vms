@@ -279,7 +279,7 @@ function startFFmpeg(channel) {
         '-an',
         '-f', 'rtsp',
         '-rtsp_transport', 'tcp',
-        'rtsp://216.24.57.252:8554/stream'
+        'rtsp://localhost:8554/stream'
     ];
 
     ffmpegProcess = spawn('ffmpeg', ffmpegArgs);

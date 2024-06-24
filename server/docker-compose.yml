@@ -12,6 +12,7 @@ services:
 
   rtsp-simple-server:
     image: aler9/rtsp-simple-server:latest
+    platform: linux/amd64
     ports:
       - "8554:8554"
     networks:
@@ -19,6 +20,7 @@ services:
 
   rtsp-to-web:
     image: ghcr.io/deepch/rtsptoweb:latest
+    platform: linux/amd64
     ports:
       - "8083:8083"
     networks:
