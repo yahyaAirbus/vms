@@ -17,13 +17,13 @@ app.use(cors());
 
 const awsConfig = {
     region: "us-east-2",
-    accessKeyId: "AKIA3FLDX56K3YMUSH7P",
-    secretAccessKey: "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"
+    accessKeyId: process.env.AWS_Access_key,
+    secretAccessKey: process.env.AWS_Secret_access_key
 };
 
 const s3 = new AWS.S3({
-    accessKeyId: "AKIA3FLDX56K3YMUSH7P",
-    secretAccessKey: "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",
+    accessKeyId: process.env.AWS_Access_key,
+    secretAccessKey: process.env.AWS_Secret_access_key,
     region: "us-east-2"
 });
 
