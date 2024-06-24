@@ -9,7 +9,7 @@ const PORT = 3001;
 const fs = require("fs");
 const { exec } = require('child_process');
 const { v4: uuidv4 } = require('uuid');
-const ytdl = require('ytdl-core');
+//const ytdl = require('ytdl-core');
 
 require('dotenv').config();
 app.use(express.json());
@@ -312,7 +312,7 @@ app.post("/switch_stream", async (req, res) => {
         res.status(500).json({ message: "Error retrieving RTSP URL" });
     }
 });
-
+/*
 async function youtubeToRtsp(youtubeUrl, name) {
     try {
         const videoInfo = await ytdl.getInfo(youtubeUrl);
@@ -407,7 +407,7 @@ app.post('/youtube-to-rtsp', async (req, res) => {
 });
 
 
-
+*/
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
