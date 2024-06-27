@@ -1,3 +1,0 @@
-[submodule "server/RTSPtoWeb"]
-	path = server/RTSPtoWeb
-	url = https://github.com/yahyaAirbus/RTSPtoWeb.git

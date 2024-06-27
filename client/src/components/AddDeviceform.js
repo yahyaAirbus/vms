@@ -16,7 +16,7 @@ function AddDeviceForm() {
         };
 
         try {
-            const response = await axios.post('http://18.191.200.18:3001/device', deviceData);
+            const response = await axios.post('http://127.0.0.1:3001/device', deviceData);
             console.log(response.data);
             toast.success('Device added successfully!', {
                 position: "top-right",

@@ -91,7 +91,7 @@ app.post("/device", async (req, res) => {
         };
         await docClient.put(putParams).promise();
 
-        const externalApiUrl = `http://demo:demo@127.0.0.1:8083/stream/demo/channel/${newChannelId}/add`;
+        const externalApiUrl = `http://demo:demo@127.0.0.1:8083/stream/demoStream/channel/${newChannelId}/add`;
         const externalApiBody = {
             name: name,
             url: rtspUrl,
@@ -171,7 +171,7 @@ app.delete("/device/:channel", async (req, res) => {
     try {
         await docClient.delete(deleteParams).promise();
 
-        const externalApiUrl = `http://demo:demo@127.0.0.1:8083/stream/demo/channel/${channel}/delete`;
+        const externalApiUrl = `http://demo:demo@127.0.0.1:8083/stream/demoStream/channel/${channel}/delete`;
         await axios.get(externalApiUrl)
 
         res.status(200).json({ message: "Device deleted successfully" });
@@ -190,7 +190,7 @@ app.post("/record/start", (req, res) => {
         return res.status(400).json({ message: "Channel number is required" });
     }
 
-    const m3u8Url = `http://127.0.0.1:8083/stream/demo/channel/${channel}/hls/live/index.m3u8`;
+    const m3u8Url = `http://127.0.0.1:8083/stream/demoStream/channel/${channel}/hls/live/index.m3u8`;
 
     const recordingId = uuidv4();
     outputFilename = `recording_${recordingId}.mp4`;
@@ -265,12 +265,12 @@ app.delete('/recordings/:key', (req, res) => {
     });
 });
 
-function startFFmpeg(channel) {
+/*function startFFmpeg(channel) {
     if (ffmpegProcess) {
         ffmpegProcess.kill();
     }
 
-    const hlsInputUrl = `http://127.0.0.1:8083/stream/demo/channel/1/hls/live/index.m3u8`;
+    const hlsInputUrl = `http://127.0.0.1:8083/stream/demostream/channel/1/hls/live/index.m3u8`;
 
     const ffmpegArgs = [
         '-loglevel', 'debug',
@@ -279,7 +279,7 @@ function startFFmpeg(channel) {
         '-an',
         '-f', 'rtsp',
         '-rtsp_transport', 'tcp',
-        'rtsp://localhost:8554/stream'
+        'rtsp://local:8554/stream'
     ];
 
     ffmpegProcess = spawn('ffmpeg', ffmpegArgs);
@@ -296,7 +296,7 @@ function startFFmpeg(channel) {
         console.log(`FFmpeg process exited with code ${code}`);
     });
 }
-
+*/
 app.post("/switch_stream", async (req, res) => {
     const { channel } = req.body;
 

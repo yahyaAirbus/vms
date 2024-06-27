@@ -14,7 +14,7 @@ const Devices = () => {
     useEffect(() => {
         const fetchDevices = async () => {
             try {
-                const response = await axios.get('http://18.191.200.18:3001/name');
+                const response = await axios.get('http://127.0.0.1:3001/name');
                 setDevices(response.data.names);
             } catch (error) {
                 console.error('Error fetching devices:', error);
@@ -26,7 +26,7 @@ const Devices = () => {
 
     const handleDelete = async (channel) => {
         try {
-            await axios.delete(`http://18.191.200.18:3001/device/${channel}`);
+            await axios.delete(`http://127.0.0.1:3001/device/${channel}`);
             setDevices(devices.filter(device => device.channel !== channel));
             toast.success('Device deleted successfully');
         } catch (error) {

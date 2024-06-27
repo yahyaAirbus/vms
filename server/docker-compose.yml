@@ -9,9 +9,11 @@ services:
       - "3001:3001"
     networks:
       - app-network
+    env_file:
+      - .env
 
   rtsp-simple-server:
-    image: aler9/rtsp-simple-server:latest
+    image:
     platform: linux/amd64
     ports:
       - "8554:8554"
