@@ -9,7 +9,6 @@ const PORT = 3001;
 const fs = require("fs");
 const { exec } = require('child_process');
 const { v4: uuidv4 } = require('uuid');
-//const ytdl = require('ytdl-core');
 
 require('dotenv').config();
 app.use(express.json());
@@ -131,10 +130,6 @@ app.get("/channel", async (req, res) => {
         res.status(500).json({ message: "Error retrieving live channels" });
     }
 });
-
-app.get('/test', (req, res) => {
-    res.json("hello world")
-})
 
 app.get("/name", async (req, res) => {
     try {
@@ -265,38 +260,6 @@ app.delete('/recordings/:key', (req, res) => {
     });
 });
 
-/*function startFFmpeg(channel) {
-    if (ffmpegProcess) {
-        ffmpegProcess.kill();
-    }
-
-    const hlsInputUrl = `http://127.0.0.1:8083/stream/demostream/channel/1/hls/live/index.m3u8`;
-
-    const ffmpegArgs = [
-        '-loglevel', 'debug',
-        '-i', hlsInputUrl,
-        '-c:v', 'libx264',
-        '-an',
-        '-f', 'rtsp',
-        '-rtsp_transport', 'tcp',
-        'rtsp://local:8554/stream'
-    ];
-
-    ffmpegProcess = spawn('ffmpeg', ffmpegArgs);
-
-    ffmpegProcess.stdout.on('data', (data) => {
-        console.log(`FFmpeg stdout: ${data}`);
-    });
-
-    ffmpegProcess.stderr.on('data', (data) => {
-        console.error(`FFmpeg stderr: ${data}`);
-    });
-
-    ffmpegProcess.on('close', (code) => {
-        console.log(`FFmpeg process exited with code ${code}`);
-    });
-}
-*/
 app.post("/switch_stream", async (req, res) => {
     const { channel } = req.body;
 
@@ -305,15 +268,15 @@ app.post("/switch_stream", async (req, res) => {
     }
 
     try {
-        startFFmpeg(channel);
+        await axios.post('http://localhost:8084/switch_stream', { channel });
         res.status(200).json({ message: `Switched to channel ${channel}` });
-    } catch (err) {
-        console.error("Error retrieving RTSP URL:", err);
-        res.status(500).json({ message: "Error retrieving RTSP URL" });
+    } catch (error) {
+        console.error('Error switching stream:', error);
+        res.status(500).json({ message: "Error switching stream" });
     }
 });
-/*
-async function youtubeToRtsp(youtubeUrl, name) {
+
+/*async function youtubeToRtsp(youtubeUrl, name) {
     try {
         const videoInfo = await ytdl.getInfo(youtubeUrl);
         const format = ytdl.chooseFormat(videoInfo.formats, { quality: 'highest' });
@@ -331,7 +294,7 @@ async function youtubeToRtsp(youtubeUrl, name) {
             '-an',
             '-f', 'rtsp',
             '-rtsp_transport', 'tcp',
-            `rtsp://216.24.57.252:8554/${name}`
+            `rtsp://localhost:8554/${name}`
         ];
 
         const ffmpegProcess = spawn('ffmpeg', ffmpegArgs);
@@ -371,7 +334,7 @@ app.post('/youtube-to-rtsp', async (req, res) => {
         const data = await docClient.scan(scanParams).promise();
         const maxChannelId = data.Items.length ? data.Items.reduce((maxId, item) => Math.max(maxId, item.channel), 0) : 0;
         const newChannelId = maxChannelId + 1;
-        const rtspLink = `rtsp://5.tcp.eu.ngrok.io:10141/${name}`;
+        const rtspLink = `rtsp://localhost:8554/${name}`;
         const putParams = {
             TableName: "demo_devices",
             Item: {
@@ -382,7 +345,7 @@ app.post('/youtube-to-rtsp', async (req, res) => {
         };
         await docClient.put(putParams).promise();
 
-        const externalApiUrl = `http://demo:demo@127.0.0.1:8083/stream/demo/channel/${newChannelId}/add`;
+        const externalApiUrl = `http://demo:demo@127.0.0.1:8083/stream/demoStream/channel/${newChannelId}/add`;
         const externalApiBody = {
             name: name,
             url: rtspLink,
@@ -391,12 +354,14 @@ app.post('/youtube-to-rtsp', async (req, res) => {
             status: 0
         };
 
+        console.log(`Sending request to external API: ${externalApiUrl}`);
         await axios.post(externalApiUrl, externalApiBody, {
             headers: {
                 "Content-Type": "application/json"
             }
         });
 
+        console.log("External API request successful, starting YouTube to RTSP conversion");
         await youtubeToRtsp(youtubeUrl, name);
 
         res.status(200).json({ message: "Stream added successfully", channel: newChannelId });
@@ -405,9 +370,9 @@ app.post('/youtube-to-rtsp', async (req, res) => {
         res.status(500).json({ message: "Error adding stream" });
     }
 });
-
-
 */
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
+
+

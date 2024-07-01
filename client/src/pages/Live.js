@@ -6,6 +6,8 @@ import VideoStatus from '../components/VideoStatus';
 import axios from 'axios';
 import Recording from '../components/Recording';
 import Stream from '../components/Stream';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 const LiveVideo = () => {
     const [liveChannels, setLiveChannels] = useState([]);
     const [channelNames, setChannelNames] = useState({});
@@ -88,6 +90,7 @@ const LiveVideo = () => {
                                 <VideoStatus channelId={channel} />
                                 <Recording channel={channel} />
                                 <Stream channel={channel} />
+                                <ToastContainer />
                             </div>
                         </div>
                     ))}
