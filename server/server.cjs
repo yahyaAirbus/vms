@@ -4,11 +4,11 @@ const cors = require("cors");
 const app = express();
 const AWS = require("aws-sdk");
 const axios = require("axios");
-const { spawn } = require('child_process');
+const { exec } = require('child_process');
 const PORT = 3001;
 const fs = require("fs");
-const { exec } = require('child_process');
 const { v4: uuidv4 } = require('uuid');
+const { execSync } = require('child_process');
 
 require('dotenv').config();
 app.use(express.json());
@@ -26,7 +26,7 @@ const s3 = new AWS.S3({
     region: "us-east-2"
 });
 
-const cloudfront = 'https://d1gx8w5c0cotxv.cloudfront.net'
+const cloudfront = 'https://d1gx8w5c0cotxv.cloudfront.net';
 
 const docClient = new AWS.DynamoDB.DocumentClient(awsConfig);
 
@@ -167,7 +167,7 @@ app.delete("/device/:channel", async (req, res) => {
         await docClient.delete(deleteParams).promise();
 
         const externalApiUrl = `http://demo:demo@127.0.0.1:8083/stream/demoStream/channel/${channel}/delete`;
-        await axios.get(externalApiUrl)
+        await axios.get(externalApiUrl);
 
         res.status(200).json({ message: "Device deleted successfully" });
     } catch (err) {
@@ -276,46 +276,31 @@ app.post("/switch_stream", async (req, res) => {
     }
 });
 
-/*async function youtubeToRtsp(youtubeUrl, name) {
+async function getHlsLinkFromYoutube(youtubeUrl) {
     try {
-        const videoInfo = await ytdl.getInfo(youtubeUrl);
-        const format = ytdl.chooseFormat(videoInfo.formats, { quality: 'highest' });
-        const videoUrl = format.url;
-
-        const ffmpegArgs = [
-            '-loglevel', 'debug',
-            '-i', videoUrl,
-            '-c:v', 'libx264',
-            '-profile:v', 'baseline',
-            '-b:v', '512k',
-            '-r', '15',
-            '-g', '30',
-            '-s', '640x480',
-            '-an',
-            '-f', 'rtsp',
-            '-rtsp_transport', 'tcp',
-            `rtsp://localhost:8554/${name}`
-        ];
-
-        const ffmpegProcess = spawn('ffmpeg', ffmpegArgs);
-
-        ffmpegProcess.stdout.on('data', (data) => {
-            console.log(`FFmpeg stdout: ${data}`);
-        });
-
-        ffmpegProcess.stderr.on('data', (data) => {
-            console.error(`FFmpeg stderr: ${data}`);
-        });
-
-        ffmpegProcess.on('close', (code) => {
-            console.log(`FFmpeg process exited with code ${code}`);
-        });
-
-        return Promise.resolve();
+        const command = `yt-dlp -g "${youtubeUrl}"`;
+        const result = execSync(command, { encoding: 'utf8' }).trim();
+        return result;
     } catch (err) {
-        console.error(`ytdl-core error: ${err}`);
-        return Promise.reject(`Error retrieving YouTube video URL: ${err}`);
+        console.error(`yt-dlp error: ${err}`);
+        throw new Error(`Error retrieving HLS URL: ${err}`);
     }
+}
+
+async function hlsToRtsp(hlsUrl, name) {
+    return new Promise((resolve, reject) => {
+        const rtsp_url = `rtsp://localhost:8554/${name}`;
+        const ffmpegCommand = `ffmpeg -i "${hlsUrl}" -c:v copy -f rtsp "${rtsp_url}"`;
+
+        exec(ffmpegCommand, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`Error streaming HLS to RTSP: ${stderr}`);
+                reject(`Error streaming HLS to RTSP: ${stderr}`);
+                return;
+            }
+            resolve(rtsp_url);
+        });
+    });
 }
 
 app.post('/youtube-to-rtsp', async (req, res) => {
@@ -326,53 +311,62 @@ app.post('/youtube-to-rtsp', async (req, res) => {
     }
 
     try {
+        const hlsUrlPromise = getHlsLinkFromYoutube(youtubeUrl);
+        const hlsUrl = await hlsUrlPromise;
+        console.log(`HLS URL: ${hlsUrl}`);
+
+        const rtspUrlPromise = hlsToRtsp(hlsUrl, name);
+        const rtspUrl = await rtspUrlPromise;
+        console.log(`RTSP URL: ${rtspUrl}`);
+
         const scanParams = {
             TableName: "demo_devices",
             ProjectionExpression: "channel"
         };
 
-        const data = await docClient.scan(scanParams).promise();
+        const dataPromise = docClient.scan(scanParams).promise();
+        const data = await dataPromise;
         const maxChannelId = data.Items.length ? data.Items.reduce((maxId, item) => Math.max(maxId, item.channel), 0) : 0;
         const newChannelId = maxChannelId + 1;
-        const rtspLink = `rtsp://localhost:8554/${name}`;
+
         const putParams = {
             TableName: "demo_devices",
             Item: {
                 "channel": newChannelId,
                 "name": name,
-                "rtsp_url": rtspLink
+                "rtsp_url": rtspUrl
             }
         };
-        await docClient.put(putParams).promise();
+        const putPromise = docClient.put(putParams).promise();
+        await putPromise;
 
         const externalApiUrl = `http://demo:demo@127.0.0.1:8083/stream/demoStream/channel/${newChannelId}/add`;
         const externalApiBody = {
             name: name,
-            url: rtspLink,
+            url: rtspUrl,
             on_demand: false,
             debug: false,
             status: 0
         };
 
         console.log(`Sending request to external API: ${externalApiUrl}`);
-        await axios.post(externalApiUrl, externalApiBody, {
+        const axiosPromise = axios.post(externalApiUrl, externalApiBody, {
             headers: {
                 "Content-Type": "application/json"
             }
         });
+        await axiosPromise;
 
-        console.log("External API request successful, starting YouTube to RTSP conversion");
-        await youtubeToRtsp(youtubeUrl, name);
+        console.log("External API request successful");
 
         res.status(200).json({ message: "Stream added successfully", channel: newChannelId });
     } catch (err) {
         console.error("Error adding stream:", err);
-        res.status(500).json({ message: "Error adding stream" });
+        res.status(500).json({ message: "Error adding stream", error: err });
     }
 });
-*/
+
+
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
-
-

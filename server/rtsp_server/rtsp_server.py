@@ -26,7 +26,7 @@ class MyServer(GstRtspServer.RTSPServer):
         super(MyServer, self).__init__(**properties)
         self.factory = MyFactory()
         self.get_mount_points().add_factory("/test", self.factory)
-        self.set_service("8554")
+        self.set_service("5554")
         self.attach(None)
 
 class RequestHandler(BaseHTTPRequestHandler):
@@ -64,7 +64,7 @@ class RequestHandler(BaseHTTPRequestHandler):
 if __name__ == '__main__':
     Gst.init(None)
     my_server = MyServer()
-    print("RTSP server is running at rtsp://localhost:8554/test")
+    print("RTSP server is running at rtsp://localhost:5554/test")
     
     http_server = HTTPServer(('localhost', 8084), RequestHandler)
     print("HTTP server is running at http://localhost:8084")
