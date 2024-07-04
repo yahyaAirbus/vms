@@ -61,7 +61,7 @@ function Archive() {
                                     <video
                                         ref={el => videoRefs.current[recording.key] = el}
                                         controls
-                                        autoPlay
+                                        autoPlay={false}
                                         muted
                                         width="100%"
                                     >

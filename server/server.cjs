@@ -8,11 +8,13 @@ const { exec } = require('child_process');
 const PORT = 3001;
 const fs = require("fs");
 const { v4: uuidv4 } = require('uuid');
+const multer = require('multer');
 const { execSync } = require('child_process');
 
 require('dotenv').config();
 app.use(express.json());
 app.use(cors());
+const upload = multer({ dest: 'uploads/' });
 
 const awsConfig = {
     region: "us-east-2",
@@ -366,6 +368,31 @@ app.post('/youtube-to-rtsp', async (req, res) => {
     }
 });
 
+
+app.post('/add-recording', upload.single('video'), async (req, res) => {
+    const videoFile = req.file;
+
+    if (!videoFile) {
+        return res.status(400).json({ message: 'No video file uploaded' });
+    }
+
+    const params = {
+        Bucket: 'airbusdemorecordings',
+        Key: videoFile.filename,
+        Body: fs.createReadStream(videoFile.path),
+        ContentType: 'video/mp4'
+    };
+
+    try {
+        const uploadResult = await s3.upload(params).promise();
+        console.log('Upload successful:', uploadResult.Location);
+        fs.unlinkSync(videoFile.path);
+        res.status(200).json({ message: 'Video uploaded to S3', url: uploadResult.Location });
+    } catch (error) {
+        console.error('Error uploading video to S3:', error);
+        res.status(500).json({ message: 'Error uploading video to S3' });
+    }
+});
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
