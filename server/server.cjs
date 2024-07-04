@@ -394,6 +394,22 @@ app.post('/add-recording', upload.single('video'), async (req, res) => {
     }
 });
 
+app.post('/share-recording/:recordingKey', async (req, res) => {
+    const recordingKey = req.params.recordingKey;
+    try {
+        const params = {
+            Bucket: "airbusdemorecordings",
+            Key: recordingKey
+        };
+        const videoUrl = `${cloudfront}/${recordingKey}`;
+        await axios.post("http://localhost:8084/share-recording", { videoUrl });
+        res.status(200).json({ message: 'Video URL shared successfully', videoUrl });
+    } catch (error) {
+        console.error('Error sharing recording:', error.message);
+        res.status(500).json({ message: 'Error sharing recording' });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });

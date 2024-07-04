@@ -13,7 +13,7 @@ function Login() {
 
     async function handleSubmit(event) {
         event.preventDefault();
-        setError(''); // Clear previous error
+        setError('');
         const success = await login(email, password);
         if (success) {
             navigate('/Home');

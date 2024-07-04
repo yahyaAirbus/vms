@@ -16,8 +16,7 @@ function Archive() {
         const fetchRecordings = async () => {
             try {
                 const response = await axios.get('http://127.0.0.1:3001/recordings');
-                console.log('Recordings:', response.data);
-                setRecordings(response.data);
+                setRecordings(response.data)
             } catch (error) {
                 console.error('Error fetching recordings:', error);
             }
@@ -75,7 +74,7 @@ function Archive() {
                                         onClick={() => confirmDelete(recording.key)}
                                         className="delete-icon"
                                     />
-                                    <Share />
+                                    <Share recording_key={recording.key} />
                                 </div>
 
                             </div>
@@ -84,7 +83,6 @@ function Archive() {
                         <p>No recordings found.</p>
                     )}
                 </div>
-
             </div>
             <ToastContainer />
             <ConfirmDialog />

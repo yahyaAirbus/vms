@@ -32,40 +32,84 @@ class MyServer(GstRtspServer.RTSPServer):
 class RequestHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         if self.path == '/switch_stream':
-            content_length = int(self.headers['Content-Length'])
-            post_data = self.rfile.read(content_length)
-            data = json.loads(post_data)
-            channel = data.get('channel')
+            self.handle_switch_stream()
+        elif self.path == '/share-recording':
+            self.handle_share_recording()
+        else:
+            self.handle_404()
 
-            print(f"Received switch_stream request for channel: {channel}")
+    def handle_switch_stream(self):
+        content_length = int(self.headers['Content-Length'])
+      
+        post_data = self.rfile.read(content_length)
+ 
+        data = json.loads(post_data)
 
-            if channel is not None:
-                hls_url = f"http://127.0.0.1:8083/stream/demoStream/channel/{channel}/hls/live/index.m3u8"
-                my_server.factory.pipeline_str = (
-                    f"souphttpsrc location={hls_url} ! "
-                    "hlsdemux ! "
-                    "decodebin ! "
-                    "videoconvert ! "
-                    "x264enc bitrate=512 ! "
-                    "rtph264pay name=pay0 pt=96"
-                )
-                print(f"Set pipeline_str to: {my_server.factory.pipeline_str}")
-                self.send_response(200)
-                self.send_header('Content-type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps({"message": "Stream switched"}).encode('utf-8'))
-            else:
-                print("Channel number is missing in the request.")
-                self.send_response(400)
-                self.send_header('Content-type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps({"message": "Channel number is required"}).encode('utf-8'))
+        channel = data.get('channel')
+
+        print(f"Received switch_stream request for channel: {channel}")
+
+        if channel is not None:
+            hls_url = f"http://127.0.0.1:8083/stream/demoStream/channel/{channel}/hls/live/index.m3u8"
+            my_server.factory.pipeline_str = (
+                f"souphttpsrc location={hls_url} ! "
+                "hlsdemux ! "
+                "decodebin ! "
+                "videoconvert ! "
+                "x264enc bitrate=512 ! "
+                "rtph264pay name=pay0 pt=96"
+            )
+            print(f"Set pipeline_str to: {my_server.factory.pipeline_str}")
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({"message": "Stream switched"}).encode('utf-8'))
+        else:
+            print("Channel number is missing in the request.")
+            self.send_response(400)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({"message": "Channel number is required"}).encode('utf-8'))
+
+    def handle_share_recording(self):
+        content_length = int(self.headers['Content-Length'])
+        post_data = self.rfile.read(content_length)
+        data = json.loads(post_data)
+        videoUrl = data.get('videoUrl')
+        print(f"Received switch_stream request for channel: {videoUrl}")
+
+        if videoUrl is not None:
+            my_server.factory.pipeline_str = (
+                f"souphttpsrc location={videoUrl} ! "
+                "decodebin ! "
+                "videoconvert ! "
+                "x264enc bitrate=512 ! "
+                "rtph264pay name=pay0 pt=96"
+            )
+            print(f"Set pipeline_str to: {my_server.factory.pipeline_str}")
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({"message": "Recording shared"}).encode('utf-8'))
+        else:
+            print("Video URL is missing in the request.")
+            self.send_response(400)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({"message": "Video URL is required"}).encode('utf-8'))
+
+    def handle_404(self):
+        self.send_response(404)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps({"message": "Endpoint not found"}).encode('utf-8'))
 
 if __name__ == '__main__':
     Gst.init(None)
+
     my_server = MyServer()
     print("RTSP server is running at rtsp://localhost:5554/test")
-    
+
     http_server = HTTPServer(('localhost', 8084), RequestHandler)
     print("HTTP server is running at http://localhost:8084")
     http_server_thread = threading.Thread(target=http_server.serve_forever)
