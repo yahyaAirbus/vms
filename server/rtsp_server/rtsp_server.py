@@ -80,7 +80,7 @@ class RequestHandler(BaseHTTPRequestHandler):
 
         if videoUrl is not None:
             my_server.factory.pipeline_str = (
-                f"souphttpsrc location={videoUrl} ! "
+                f"souphttpsrc location= {videoUrl} ! "
                 "decodebin ! "
                 "videoconvert ! "
                 "x264enc bitrate=512 ! "
@@ -108,10 +108,11 @@ if __name__ == '__main__':
     Gst.init(None)
 
     my_server = MyServer()
+    my_server.set_service("5554")
     print("RTSP server is running at rtsp://localhost:5554/test")
 
-    http_server = HTTPServer(('localhost', 8084), RequestHandler)
-    print("HTTP server is running at http://localhost:8084")
+    http_server = HTTPServer(('0.0.0.0', 8084), RequestHandler)
+    print("HTTP server is running at http://0.0.0.0:8084")
     http_server_thread = threading.Thread(target=http_server.serve_forever)
     http_server_thread.start()
 
@@ -124,3 +125,4 @@ if __name__ == '__main__':
         http_server.shutdown()
         http_server_thread.join()
         loop.quit()
+
