@@ -16,6 +16,7 @@ app.use(express.json());
 app.use(cors());
 const upload = multer({ dest: 'uploads/' });
 
+//AWS credentials to access data on was
 const awsConfig = {
     region: "us-east-2",
     accessKeyId: process.env.AWS_Access_key,
@@ -28,10 +29,12 @@ const s3 = new AWS.S3({
     region: "us-east-2"
 });
 
+//cloudfront link to access recording in S3 bucket
 const cloudfront = 'https://d1gx8w5c0cotxv.cloudfront.net';
 
 const docClient = new AWS.DynamoDB.DocumentClient(awsConfig);
 
+//login endpoint
 app.post("/Login", (req, res) => {
     const { email, password } = req.body;
 
@@ -65,6 +68,7 @@ app.post("/Login", (req, res) => {
     });
 });
 
+//adding devices or streams to dynamoDB
 app.post("/device", async (req, res) => {
     const { name, rtspUrl } = req.body;
 
@@ -114,6 +118,7 @@ app.post("/device", async (req, res) => {
     }
 });
 
+//retriving channel number from dynamoDB
 app.get("/channel", async (req, res) => {
     try {
         const scanParams = {
@@ -133,6 +138,7 @@ app.get("/channel", async (req, res) => {
     }
 });
 
+//retrieving streams names from dynamoDB
 app.get("/name", async (req, res) => {
     try {
         const scanParams = {
@@ -155,6 +161,7 @@ app.get("/name", async (req, res) => {
     }
 });
 
+//delete stream
 app.delete("/device/:channel", async (req, res) => {
     const { channel } = req.params;
 
@@ -181,6 +188,7 @@ app.delete("/device/:channel", async (req, res) => {
 let outputFilename;
 let ffmpegProcess;
 
+//record stream
 app.post("/record/start", (req, res) => {
     const { channel } = req.body;
     if (!channel) {
@@ -204,6 +212,7 @@ app.post("/record/start", (req, res) => {
     res.status(200).json({ message: "Recording started" });
 });
 
+//stop the recording
 app.post("/record/stop", async (req, res) => {
     if (ffmpegProcess) {
         ffmpegProcess.kill('SIGINT');
@@ -227,6 +236,7 @@ app.post("/record/stop", async (req, res) => {
     }
 });
 
+//retrieve recording
 app.get('/recordings', async (req, res) => {
     const params = {
         Bucket: 'airbusdemorecordings',
@@ -245,6 +255,7 @@ app.get('/recordings', async (req, res) => {
     }
 });
 
+//delete recording 
 app.delete('/recordings/:key', (req, res) => {
     const key = req.params.key;
     const params = {
@@ -262,6 +273,7 @@ app.delete('/recordings/:key', (req, res) => {
     });
 });
 
+//stream to rtsp server
 app.post("/switch_stream", async (req, res) => {
     const { channel } = req.body;
 
@@ -278,6 +290,7 @@ app.post("/switch_stream", async (req, res) => {
     }
 });
 
+//extreact HLS link from from a regualr youtube link
 async function getHlsLinkFromYoutube(youtubeUrl) {
     try {
         const command = `yt-dlp -g "${youtubeUrl}"`;
@@ -289,6 +302,7 @@ async function getHlsLinkFromYoutube(youtubeUrl) {
     }
 }
 
+//converst HLS to RTSP to stream it to rtso server
 async function hlsToRtsp(hlsUrl, name) {
     return new Promise((resolve, reject) => {
         const rtsp_url = `rtsp://localhost:8554/${name}`;
@@ -305,6 +319,7 @@ async function hlsToRtsp(hlsUrl, name) {
     });
 }
 
+//adding youtube videos to DynamoDB
 app.post('/youtube-to-rtsp', async (req, res) => {
     const { youtubeUrl, name } = req.body;
 
@@ -368,7 +383,7 @@ app.post('/youtube-to-rtsp', async (req, res) => {
     }
 });
 
-
+//add recording from local computer to S3 bucket
 app.post('/add-recording', upload.single('video'), async (req, res) => {
     const videoFile = req.file;
 
@@ -394,6 +409,7 @@ app.post('/add-recording', upload.single('video'), async (req, res) => {
     }
 });
 
+//stream recording to rtsp server
 app.post('/share-recording/:recordingKey', async (req, res) => {
     const recordingKey = req.params.recordingKey;
     try {
@@ -410,6 +426,7 @@ app.post('/share-recording/:recordingKey', async (req, res) => {
     }
 });
 
+//testing if the server is running 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
