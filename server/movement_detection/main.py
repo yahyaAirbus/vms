@@ -6,13 +6,30 @@ import imutils
 import numpy as np
 import os
 from datetime import datetime, timedelta
-
+import requests
+import json
 # initialize the list of class labels MobileNet SSD was trained to
 # detect
 CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat",
 	"bottle", "bus", "car", "cat", "chair", "cow", "diningtable",
 	"dog", "horse", "motorbike", "person", "pottedplant", "sheep",
 	"sofa", "train", "tvmonitor"]
+
+#get token form Smartwisp
+def auth(username, password, client_secret):
+
+    url = "https://openid-keycloak-test.tactilon-smartwisp.com/auth/realms/master/protocol/openid-connect/token"
+    data = {'username': username,
+            'password': password,
+            'grant_type': 'password',
+            'client_id': 'kong',
+            'client_secret': client_secret,
+            }
+    response = requests.post(url, data=data, headers={'Content-Type': 'application/x-www-form-urlencoded'})
+
+    token = json.loads(response.text)['access_token']
+
+    return token
 
 def getCamera(url):
     while True:
@@ -81,8 +98,34 @@ def getDetection(args, smallFrame):
             image = cv2.rectangle(image, start_point, end_point, color, thickness) 
     return found, image
 
-def sendAlert():
-   os.system("./imessage 'human detection' ")
+#Send emergency alert to dispatcher
+def send_alert():
+    method_url = 'https://api.ea-1.eu-west-1.agnet.com/api/v2/subscriber/35840789456/message'
+    token = auth('yahya.khafif@airbus.com', 'JamilaOuahidy1234', 'cb59044f-f674-455c-8798-ee11c169c861')
+    body = {
+        'Message': {
+            'Text': 'dispatch test',
+            'Recipients': [{'Msisdn': '35840321654'}],
+            'IsGroupMessage': False,
+            'Bearer': "NFC",
+            'AvailableOnlyRecipients': False,
+            'RequiresAcknowledge': True
+        },
+        'DeleteAfterSending': False
+    }
+
+    headers = {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+    }
+
+    response = requests.post(method_url, json=body, headers=headers)
+
+    feedback = json.loads(response.text)
+
+    print(feedback)
+
+    return
    
 ap = argparse.ArgumentParser()
 ap.add_argument("-u","--url", required=True, help="#url for the video")
@@ -162,7 +205,7 @@ while True:
         checkcur = cur - timedelta(minutes=1)
         if checkcur > image_sent:
             image_sent = cur
-            #sendMessage(newImage)
+            send_alert()
             width = int(vs.get(cv2.CAP_PROP_FRAME_WIDTH))
             height = int(vs.get(cv2.CAP_PROP_FRAME_HEIGHT))
             fourcc = cv2.VideoWriter_fourcc(*'mp4v') #opencv3.0
