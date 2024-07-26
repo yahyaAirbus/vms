@@ -1,7 +1,7 @@
-import gi
+import gi #type: ignore
 gi.require_version('Gst', '1.0')
 gi.require_version('GstRtspServer', '1.0')
-from gi.repository import Gst, GstRtspServer, GLib
+from gi.repository import Gst, GstRtspServer, GLib # type: ignore
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import threading
