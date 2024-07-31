@@ -1,18 +1,22 @@
-import cv2
+#import cv2
 import time
-import imutils
-import numpy as np
+#import imutils
+#import numpy as np
 import os
 from datetime import datetime, timedelta
 import requests
 import json
-import gradio as gr
-''''
+from dotenv import load_dotenv
+
+load_dotenv()
+
+#import gradio as gr
+
 # Environment variables to get Smartwisp token
-AGNET_USERNAME = os.environ['AGNET_USERNAME']
-AGNET_PASSWORD = os.environ['AGNET_PASSWORD']
-AGNET_CLIENT_ID = os.environ['AGNET_CLIENT_ID']
-MSISDN = os.environ['MSISDN']
+AGNET_USERNAME = os.environ.get('AGNET_USERNAME')
+AGNET_PASSWORD = os.environ.get('AGNET_PASSWORD')
+AGNET_CLIENT_ID = os.environ.get('AGNET_CLIENT_ID')
+MSISDN = os.environ.get('MSISDN')
 
 # Function to get token from Smartwisp
 def auth(username, password, client_secret):
@@ -31,29 +35,51 @@ def auth(username, password, client_secret):
     return token
 
 # Function to send emergency alert to dispatcher
-def send_alert():
-    print("[INFO] Sending emergency alert to dispatcher...")
-    method_url = 'https://api.ea-1.eu-west-1.agnet.com/api/v2/subscriber/35840789456/message'
-    token = auth(AGNET_USERNAME, AGNET_PASSWORD, AGNET_CLIENT_ID)
-    body = {
-        'Message': {
-            'Text': 'dispatch test',
-            'Recipients': [{'Msisdn': MSISDN}],
-            'IsGroupMessage': False,
-            'Bearer': "NFC",
-            'AvailableOnlyRecipients': False,
-            'RequiresAcknowledge': True
-        },
-        'DeleteAfterSending': False
-    }
+def send_alert(bearer_token):
+    url = 'https://api.ea-1.eu-west-1.agnet.com/api/v2/subscriber/35840123456/message/emergency?filter=sendEmergency'
     headers = {
-        'Authorization': 'Bearer ' + token,
+        'Authorization': f'Bearer {bearer_token}',
         'Content-Type': 'application/json'
     }
-    response = requests.post(method_url, json=body, headers=headers)
-    feedback = json.loads(response.text)
-    print("[INFO] Alert sent, response:", feedback)
-    return
+    data = {
+        "Message": {
+            "Severity": "critical",
+            "EmergencyTitle": "Corporate Operations Consultant",
+            "Text": "Agent",
+            "Location": {
+                "Latitude": "18.6502",
+                "Longitude": "-68.0263",
+                "Address": "MyAddress"
+            }
+        }
+    }
+    
+    try:
+        response = requests.post(url, headers=headers, json=data)  
+        if response.status_code == 200 or response.status_code == 201:
+            print("Request successful")
+            print("Response content:")
+            response_data = response.json()
+            print(response_data)
+            return str(response_data['results']['ConversationGroupId'])
+        else:
+            print(f"Request failed with status code {response.status_code}")
+            print(response.text)
+            return None
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred: {e}")
+        return None
+
+
+def accessing_variables ():
+    print(AGNET_USERNAME)
+
+
+if __name__ == "__main__":
+    #accessing_variables()
+    send_alert(auth(AGNET_USERNAME, AGNET_PASSWORD, AGNET_CLIENT_ID))
+    #get_message_uuid(auth(AGNET_USERNAME, AGNET_PASSWORD, AGNET_CLIENT_ID))
+
 '''
 # Function to get frame from the video stream
 def getFrame(url, vs):
@@ -239,3 +265,4 @@ else:
 
 if __name__ == "__main__":
     demo.launch()
+''' 
