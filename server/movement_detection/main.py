@@ -1,12 +1,15 @@
-#import cv2
+import cv2
 import time
-#import imutils
-#import numpy as np
+import imutils
+import numpy as np
 import os
 from datetime import datetime, timedelta
 import requests
 import json
 from dotenv import load_dotenv
+import base64
+from PIL import Image
+from io import BytesIO
 
 load_dotenv()
 
@@ -35,52 +38,83 @@ def auth(username, password, client_secret):
     return token
 
 # Function to send emergency alert to dispatcher
-def send_alert(bearer_token):
-    url = 'https://api.ea-1.eu-west-1.agnet.com/api/v2/subscriber/35840123456/message/emergency?filter=sendEmergency'
+def send_emergency_message(bearer_token, recipient_msisdn):
+    url = f'https://api.ea-1.eu-west-1.agnet.com/api/v2/subscriber/{recipient_msisdn}/message/emergency?filter=sendEmergency'
     headers = {
         'Authorization': f'Bearer {bearer_token}',
         'Content-Type': 'application/json'
     }
     data = {
         "Message": {
-            "Severity": "critical",
-            "EmergencyTitle": "Corporate Operations Consultant",
-            "Text": "Agent",
+            "Severity": "custom",
+            "EmergencyTitle": "Emergency Alert",
+            "Text": "Human movement detected!",
             "Location": {
-                "Latitude": "18.6502",
-                "Longitude": "-68.0263",
-                "Address": "MyAddress"
+                "Latitude": 60.219824,  
+                "Longitude": 24.870848 
             }
         }
     }
-    
     try:
-        response = requests.post(url, headers=headers, json=data)  
+        response = requests.post(url, headers=headers, json=data)
+
         if response.status_code == 200 or response.status_code == 201:
-            print("Request successful")
+            print("Emergency message sent successfully")
             print("Response content:")
-            response_data = response.json()
-            print(response_data)
-            return str(response_data['results']['ConversationGroupId'])
+            print(response.json())
         else:
-            print(f"Request failed with status code {response.status_code}")
+            print(f"Failed to send emergency message. Status code: {response.status_code}")
             print(response.text)
-            return None
     except requests.exceptions.RequestException as e:
         print(f"An error occurred: {e}")
-        return None
 
+#send message to dispatcher to with screenshots of the movement detected
+def send_message(bearer_token, sender_msisdn, image):
 
-def accessing_variables ():
-    print(AGNET_USERNAME)
+    with open(image, 'rb') as image_file:
+        base64_image = base64.b64encode(image_file.read()).decode('utf-8')
 
+    url = f'https://api.ea-1.eu-west-1.agnet.com/api/v2/subscriber/{sender_msisdn}/message'
+    headers = {
+        'Authorization': f'Bearer {bearer_token}',
+        'Content-Type': 'application/json'
+    }
+    data = {
+        "Message": {
+            "Text": "movement detected",
+            "Recipients": [{"Msisdn": "35840123456"}],
+            "IsGroupMessage": False,
+            "Attachment": {
+                "Content": base64_image,
+                "FileName": "evidence"
+            },
+            "Bearer": "NFC",
+            "AvailableOnlyRecipients": False,
+            "RequiresAcknowledge": False
+        },
+        "DeleteAfterSending": False
+    }
 
+    try:
+        response = requests.post(url, headers=headers, json=data)
+
+        if response.status_code == 200 or response.status_code == 201:
+            print("Message sent successfully")
+            print("Response content:")
+            print(response.json())
+        else:
+            print(f"Failed to send message. Status code: {response.status_code}")
+            print(response.text)
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred: {e}")
+
+'''''
 if __name__ == "__main__":
-    #accessing_variables()
-    send_alert(auth(AGNET_USERNAME, AGNET_PASSWORD, AGNET_CLIENT_ID))
-    #get_message_uuid(auth(AGNET_USERNAME, AGNET_PASSWORD, AGNET_CLIENT_ID))
+    send_emergency_message(auth(AGNET_USERNAME, AGNET_PASSWORD, AGNET_CLIENT_ID), "358408346118")
+    send_message(auth(AGNET_USERNAME, AGNET_PASSWORD, AGNET_CLIENT_ID), "358408346118")
+'''''
 
-'''
+
 # Function to get frame from the video stream
 def getFrame(url, vs):
     print(f"[INFO] Fetching frame from stream: {url}")
@@ -131,7 +165,7 @@ CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat", "bottle", "bus"
 
 # Parameters for detection
 args = {
-    "confidence": 0.4,
+    "confidence": 0.7,
     "skip_frames": 10,
     "view": False,
     "threshold": 4000
@@ -209,7 +243,8 @@ else:
                     checkcur = cur - timedelta(minutes=1)
                     if checkcur > image_sent:
                         image_sent = cur
-                       # send_alert()
+                        send_emergency_message(auth(AGNET_USERNAME, AGNET_PASSWORD, AGNET_CLIENT_ID),"358408346118")
+                        send_message(auth(AGNET_USERNAME, AGNET_PASSWORD, AGNET_CLIENT_ID), "358408346118", image_sent)
                         width = int(vs.get(cv2.CAP_PROP_FRAME_WIDTH))
                         height = int(vs.get(cv2.CAP_PROP_FRAME_HEIGHT))
                         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
@@ -241,28 +276,6 @@ else:
             cv2.destroyAllWindows()
         print("[INFO] Finished processing all streams")
 
-    def video_pipeline():
-        for frame, newImage in process_frame():
-            yield frame
-    
-    def detection_pipeline():
-        for _, newImage in process_frame():
-            yield newImage
-    
-    def combined_pipeline():
-        for frame, newImage in process_frame():
-            yield frame, newImage
-
-    # Create Gradio interface
-    with gr.Blocks() as demo:
-        with gr.Row():
-            video_output = gr.Video()
-            detection_output = gr.Image()
-        
-        demo.launch(video_pipeline, video_output)
-        demo.launch(detection_pipeline, detection_output)
-        demo.launch(combined_pipeline, video_output, detection_output)
 
 if __name__ == "__main__":
-    demo.launch()
-''' 
+   process_frame()
