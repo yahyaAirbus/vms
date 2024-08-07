@@ -13,8 +13,6 @@ from io import BytesIO
 
 load_dotenv()
 
-#import gradio as gr
-
 # Environment variables to get Smartwisp token
 AGNET_USERNAME = os.environ.get('AGNET_USERNAME')
 AGNET_PASSWORD = os.environ.get('AGNET_PASSWORD')
@@ -108,13 +106,6 @@ def send_message(bearer_token, sender_msisdn, image):
     except requests.exceptions.RequestException as e:
         print(f"An error occurred: {e}")
 
-'''''
-if __name__ == "__main__":
-    send_emergency_message(auth(AGNET_USERNAME, AGNET_PASSWORD, AGNET_CLIENT_ID), "358408346118")
-    send_message(auth(AGNET_USERNAME, AGNET_PASSWORD, AGNET_CLIENT_ID), "358408346118")
-'''''
-
-
 # Function to get frame from the video stream
 def getFrame(url, vs):
     print(f"[INFO] Fetching frame from stream: {url}")
@@ -123,7 +114,7 @@ def getFrame(url, vs):
     return vs
 
 # Function to detect objects in the frame
-def getDetection(args, smallFrame):
+def getDetection(args, smallFrame, net, CLASSES):
     net.setInput(cv2.dnn.blobFromImage(smallFrame, 0.007843, (300, 300), 127.5))
     detections = net.forward()
     for i in np.arange(0, detections.shape[2]):
@@ -179,7 +170,7 @@ found, avg = False, None
 outVideo = None
 
 # Fetch the live stream URLs
-stream_urls = fetch_live_stream_urls()
+stream_urls = "http://127.0.0.1:8083/stream/demoStream/channel/1/hls/live/index.m3u8"
 if not stream_urls:
     print("[ERROR] No stream URLs found")
 else:
@@ -236,15 +227,18 @@ else:
                         rgb = cv2.cvtColor(smallFrame, cv2.COLOR_BGR2RGB)
                         if W is None or H is None:
                             (H, W) = smallFrame.shape[:2]
-                        found, newImage = getDetection(args, smallFrame)
+                        found, newImage = getDetection(args, smallFrame, net, CLASSES)
     
                 if found:
                     cur = datetime.now()
                     checkcur = cur - timedelta(minutes=1)
                     if checkcur > image_sent:
                         image_sent = cur
+                        # Save the frame as an image
+                        image_path = "detected_frame.jpg"
+                        cv2.imwrite(image_path, frame)
                         send_emergency_message(auth(AGNET_USERNAME, AGNET_PASSWORD, AGNET_CLIENT_ID),"358408346118")
-                        send_message(auth(AGNET_USERNAME, AGNET_PASSWORD, AGNET_CLIENT_ID), "358408346118", image_sent)
+                        send_message(auth(AGNET_USERNAME, AGNET_PASSWORD, AGNET_CLIENT_ID), "358408346118", image_path)
                         width = int(vs.get(cv2.CAP_PROP_FRAME_WIDTH))
                         height = int(vs.get(cv2.CAP_PROP_FRAME_HEIGHT))
                         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
@@ -275,7 +269,6 @@ else:
                 vs.release()
             cv2.destroyAllWindows()
         print("[INFO] Finished processing all streams")
-
 
 if __name__ == "__main__":
    process_frame()
