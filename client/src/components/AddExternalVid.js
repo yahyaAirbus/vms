@@ -3,7 +3,9 @@ import axios from 'axios';
 import Button from '@mui/material/Button';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import VideoAnalytics from './VideoAnalytics';
 import Sidebar from './Sidebar';
+import TimeSelection from './TimeSelection';
 
 function AddExternalVid() {
     const [streamName, setStreamName] = useState('');
@@ -66,7 +68,10 @@ function AddExternalVid() {
                         value={youtubeUrl}
                         onChange={(e) => setYoutubeUrl(e.target.value)}
                     />
+                    <VideoAnalytics />
+                    <TimeSelection />
                 </div>
+
                 <div className="add-button-container">
                     <Button
                         type='submit'

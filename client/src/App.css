@@ -299,6 +299,8 @@ label {
     margin-bottom: 5px;
     margin-top: 15px;
     color: #333;
+    align-items: left;
+    justify-content: left;
 }
 
 input {
@@ -486,4 +488,9 @@ input {
 
 .custom-confirm-dialog .p-icon {
     color: #ffffff;
+}
+
+.time-selection {
+    text-align-last: left;
+
 }

@@ -4,6 +4,8 @@ import Button from '@mui/material/Button';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Sidebar from './Sidebar';
+import VideoAnalytics from '../components/VideoAnalytics';
+import TimeSelection from './TimeSelection';
 
 function AddRecordingForm() {
     const [recordingName, setRecordingName] = useState('');
@@ -71,6 +73,8 @@ function AddRecordingForm() {
                         accept="video/*"
                         onChange={handleFileChange}
                     />
+                    <VideoAnalytics />
+                    <TimeSelection />
                 </div>
                 <div className="add-button-container">
                     <Button
