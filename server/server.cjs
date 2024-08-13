@@ -10,11 +10,11 @@ const fs = require("fs");
 const { v4: uuidv4 } = require('uuid');
 const multer = require('multer');
 const { execSync } = require('child_process');
+const { PythonShell } = require('python-shell')
 
 require('dotenv').config();
 app.use(express.json());
 app.use(cors());
-const upload = multer({ dest: 'uploads/' });
 
 //AWS credentials to access data on was
 const awsConfig = {
@@ -33,6 +33,15 @@ const s3 = new AWS.S3({
 const cloudfront = 'https://d1gx8w5c0cotxv.cloudfront.net';
 
 const docClient = new AWS.DynamoDB.DocumentClient(awsConfig);
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/');  // Ensure this directory exists
+    },
+    filename: (req, file, cb) => {
+        cb(null, `${Date.now()}_${file.originalname}`);
+    }
+});
+const upload = multer({ storage: storage });
 
 //login endpoint
 app.post("/Login", (req, res) => {
@@ -302,11 +311,11 @@ async function getHlsLinkFromYoutube(youtubeUrl) {
     }
 }
 
-//converst HLS to RTSP to stream it to rtso server
+//convert HLS to RTSP to stream it to rtsp server
 async function hlsToRtsp(hlsUrl, name) {
     return new Promise((resolve, reject) => {
-        const rtsp_url = `rtsp://localhost:8554/${name}`;
-        const ffmpegCommand = `ffmpeg -i "${hlsUrl}" -c:v copy -f rtsp "${rtsp_url}"`;
+        const rtsp_url = `rtsp://3.142.212.147:8554/test`;
+        const ffmpegCommand = `ffmpeg -re -i "${hlsUrl}" -c:v copy -f rtsp "${rtsp_url}"`;
 
         exec(ffmpegCommand, (error, stdout, stderr) => {
             if (error) {
@@ -357,7 +366,7 @@ app.post('/youtube-to-rtsp', async (req, res) => {
         const putPromise = docClient.put(putParams).promise();
         await putPromise;
 
-        const externalApiUrl = `http://demo:demo@127.0.0.1:8083/stream/demoStream/channel/${newChannelId}/add`;
+        const externalApiUrl = `http://demo:demo@3.142.212.147:8083/stream/demoStream/channel/${newChannelId}/add`;
         const externalApiBody = {
             name: name,
             url: rtspUrl,
@@ -391,18 +400,28 @@ app.post('/add-recording', upload.single('video'), async (req, res) => {
         return res.status(400).json({ message: 'No video file uploaded' });
     }
 
+    // Define S3 upload parameters
     const params = {
         Bucket: 'airbusdemorecordings',
-        Key: videoFile.filename,
+        Key: videoFile.filename,  // This is the "recordingKey" we need
         Body: fs.createReadStream(videoFile.path),
         ContentType: 'video/mp4'
     };
 
     try {
+        // Upload video to S3
         const uploadResult = await s3.upload(params).promise();
         console.log('Upload successful:', uploadResult.Location);
+
+        // Remove the file from local storage after upload
         fs.unlinkSync(videoFile.path);
-        res.status(200).json({ message: 'Video uploaded to S3', url: uploadResult.Location });
+
+        // Send response with the recording key
+        res.status(200).json({
+            message: 'Video uploaded to S3',
+            url: uploadResult.Location,
+            recordingKey: videoFile.filename  // Include the recordingKey in the response
+        });
     } catch (error) {
         console.error('Error uploading video to S3:', error);
         res.status(500).json({ message: 'Error uploading video to S3' });
@@ -424,6 +443,48 @@ app.post('/share-recording/:recordingKey', async (req, res) => {
         console.error('Error sharing recording:', error.message);
         res.status(500).json({ message: 'Error sharing recording' });
     }
+});
+
+// Endpoint to start video analytics for live videos
+app.post('/rtsp-analytics', (req, res) => {
+    const { channel } = req.body;
+    res.json({ message: `Request received, and the channel is ${channel}` });
+    const scriptPath = '/Users/yahya/Desktop/prog/vms/server/movement_detection/main.py';
+    const options = {
+        pythonPath: '/Users/yahya/Desktop/prog/vms/server/venv/bin/python',
+        args: [`--video`, `http://127.0.0.1:8083/stream/demoStream/channel/${channel}/hls/live/index.m3u8`]
+    };
+
+    PythonShell.run(scriptPath, options, (err, result) => {
+        if (err) {
+            console.error('Error executing script:', err);
+            return res.status(500).json({ error: 'Failed to trigger video analytics' });
+        }
+        console.log('Script result:', result);
+        res.json({ message: 'Video analytics started successfully', output: result });
+    });
+});
+
+// Endpoint to start video analytics for recorded videos
+app.post('/recording-analytics', (req, res) => {
+    const { recordingKey } = req.body;
+
+    res.json({ message: `Request received for recording key: ${recordingKey}` });
+
+    const scriptPath = '/Users/yahya/Desktop/prog/vms/server/movement_detection/main.py';
+    const options = {
+        pythonPath: '/Users/yahya/Desktop/prog/vms/server/venv/bin/python',
+        args: ['--video', `${cloudfront}/${recordingKey}`]
+    };
+
+    PythonShell.run(scriptPath, options, (err, result) => {
+        if (err) {
+            console.error('Error executing script:', err);
+            return res.status(500).json({ error: 'Failed to trigger video analytics' });
+        }
+        console.log('Script result:', result);
+        res.json({ message: 'Video analytics started successfully', output: result });
+    });
 });
 
 //testing if the server is running 

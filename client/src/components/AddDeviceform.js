@@ -4,11 +4,12 @@ import Button from '@mui/material/Button';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import VideoAnalytics from '../components/VideoAnalytics';
-import TimeSelection from './TimeSelection';
 
 function AddDeviceForm() {
     const [deviceName, setDeviceName] = useState('');
     const [rtspUrl, setRtspUrl] = useState('');
+    const [channel, setChannel] = useState(null);  // State to store the channel
+    const [analyticsEnabled, setAnalyticsEnabled] = useState("No"); // State to track analytics
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -20,6 +21,9 @@ function AddDeviceForm() {
         try {
             const response = await axios.post('http://127.0.0.1:3001/device', deviceData);
             console.log(response.data);
+
+            setChannel(response.data.channel);  // Store the channel number in state
+
             toast.success('Device added successfully!', {
                 position: "top-right",
                 autoClose: 5000,
@@ -29,6 +33,11 @@ function AddDeviceForm() {
                 draggable: true,
                 progress: undefined,
             });
+
+            // Check if analytics should be triggered after device is added
+            if (analyticsEnabled === "Yes" && response.data.channel) {
+                await triggerAnalytics(response.data.channel);
+            }
         } catch (error) {
             console.error('Error adding device:', error);
             toast.error('Error adding device.', {
@@ -43,6 +52,18 @@ function AddDeviceForm() {
         }
         setDeviceName('');
         setRtspUrl('');
+    };
+
+    // Function to trigger analytics
+    const triggerAnalytics = async (channel) => {
+        try {
+            const response = await axios.post('http://127.0.0.1:3001/rtsp-analytics', {
+                channel: channel
+            });
+            console.log("Analytics triggered:", response.data);
+        } catch (error) {
+            console.error("Error triggering analytics:", error.response || error.message || error);
+        }
     };
 
     return (
@@ -65,8 +86,12 @@ function AddDeviceForm() {
                     value={rtspUrl}
                     onChange={(e) => setRtspUrl(e.target.value)}
                 />
-                <VideoAnalytics />
-                <TimeSelection />
+            </div>
+
+            <div className="add-form-group">
+                <VideoAnalytics
+                    onAnalyticsChange={setAnalyticsEnabled}
+                />
             </div>
 
             <div className="add-button-container">

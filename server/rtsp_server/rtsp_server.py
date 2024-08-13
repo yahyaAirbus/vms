@@ -26,7 +26,7 @@ class MyServer(GstRtspServer.RTSPServer):
         super(MyServer, self).__init__(**properties)
         self.factory = MyFactory()
         self.get_mount_points().add_factory("/test", self.factory)
-        self.set_service("5554")
+        self.set_service("8554")
         self.attach(None)
 
 class RequestHandler(BaseHTTPRequestHandler):

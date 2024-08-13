@@ -3,6 +3,7 @@ import time
 import imutils
 import numpy as np
 import os
+import argparse
 from datetime import datetime, timedelta
 import requests
 import json
@@ -66,7 +67,7 @@ def send_emergency_message(bearer_token, recipient_msisdn):
     except requests.exceptions.RequestException as e:
         print(f"An error occurred: {e}")
 
-#send message to dispatcher to with screenshots of the movement detected
+# Send message to dispatcher with screenshots of the movement detected
 def send_message(bearer_token, sender_msisdn, image):
 
     with open(image, 'rb') as image_file:
@@ -126,28 +127,9 @@ def getDetection(args, smallFrame, net, CLASSES):
                 return True, smallFrame
     return False, None
 
-# Function to fetch live stream URLs
-def fetch_live_stream_urls():
-    print("[INFO] Fetching live stream URLs...")
-    response = requests.get("http://demo:demo@127.0.0.1:8083/streams")
-    if response.status_code == 200:
-        streams = response.json().get("payload", {})
-        urls = []
-        for stream_name, stream_info in streams.items():
-            channels = stream_info.get("channels", {})
-            for channel_id, channel_info in channels.items():
-                url = channel_info.get("url")
-                if url:
-                    urls.append(url)
-        print("[INFO] Successfully fetched stream URLs:", urls)
-        return urls
-    else:
-        print("[ERROR] Error fetching stream URLs, status code:", response.status_code)
-        return []
-
 # Load the pre-trained model
 print("[INFO] Loading pre-trained model...")
-net = cv2.dnn.readNetFromCaffe("mobilenet_ssd/MobileNetSSD_deploy.prototxt", "mobilenet_ssd/MobileNetSSD_deploy.caffemodel")
+net = cv2.dnn.readNetFromCaffe("/Users/yahya/Desktop/prog/vms/server/movement_detection/mobilenet_ssd/MobileNetSSD_deploy.prototxt", "/Users/yahya/Desktop/prog/vms/server/movement_detection/mobilenet_ssd/MobileNetSSD_deploy.caffemodel")
 print("[INFO] Model loaded successfully")
 
 # Define the classes for object detection
@@ -156,7 +138,7 @@ CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat", "bottle", "bus"
 
 # Parameters for detection
 args = {
-    "confidence": 0.65,
+    "confidence": 0.7,
     "skip_frames": 10,
     "view": False,
     "threshold": 4000
@@ -169,15 +151,12 @@ image_sent = datetime.now() - timedelta(minutes=1)
 found, avg = False, None
 outVideo = None
 
-# Fetch the live stream URLs
-test_video_path = "/Users/yahya/Desktop/prog/vms/server/movement_detection/test_video.mov"
-
 # Main processing function
-def process_frame(video_path):
-    global totalFrames, newImage, smallFrame, image_sent, found, avg, outVideo
+def process_frame(video_url):
+    global totalFrames, newImage, smallFrame, image_sent, found, avg, outVideo, W, H
 
-    print(f"[INFO] Processing video: {video_path}")
-    vs = getFrame(video_path, None)
+    print(f"[INFO] Processing video: {video_url}")
+    vs = getFrame(video_url, None)
     
     bearer_token = auth(AGNET_USERNAME, AGNET_PASSWORD, AGNET_CLIENT_ID)
     
@@ -193,7 +172,7 @@ def process_frame(video_path):
             if outVideo:
                 outVideo.release()
                 outVideo = None
-            vs = getFrame(video_path, None)
+            vs = getFrame(video_url, None)
             continue
         if notToSkip:
             smallFrame = imutils.resize(frame, width=500)
@@ -224,7 +203,6 @@ def process_frame(video_path):
                 break
 
             if motion:
-                W, H = None, None
                 print("[INFO] Motion detected...")
                 totalFrames = 0
                 rgb = cv2.cvtColor(smallFrame, cv2.COLOR_BGR2RGB)
@@ -238,7 +216,7 @@ def process_frame(video_path):
             if checkcur > image_sent:
                 image_sent = cur
                 # Save the frame as an image
-                image_path = "detected_frame.jpg"
+                image_path = f"detected_frame_{datetime.now().strftime('%Y%m%d%H%M%S')}.jpg"
                 cv2.imwrite(image_path, frame)
                 send_emergency_message(bearer_token, "358408346118")
                 send_message(bearer_token, "358408346118", image_path)
@@ -272,4 +250,11 @@ def process_frame(video_path):
     print("[INFO] Finished processing video")
 
 if __name__ == "__main__":
-    process_frame(test_video_path)
+    # Set up argument parser
+    parser = argparse.ArgumentParser(description="Human movement detection from video stream")
+    parser.add_argument('--video', required=True, help='URL of the video stream or path to video file')
+    
+    args_parser = parser.parse_args()
+    
+    # Process the provided video stream or file
+    process_frame(args_parser.video)
