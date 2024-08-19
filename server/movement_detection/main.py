@@ -220,14 +220,7 @@ def process_frame(video_url):
                 cv2.imwrite(image_path, frame)
                 send_emergency_message(bearer_token, "358408346118")
                 send_message(bearer_token, "358408346118", image_path)
-                width = int(vs.get(cv2.CAP_PROP_FRAME_WIDTH))
-                height = int(vs.get(cv2.CAP_PROP_FRAME_HEIGHT))
-                fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-                timestr = time.strftime("%Y%m%d-%H%M%S.mp4")
-                timestr = "HumanDetectionRecord/" + timestr
-                if not outVideo:
-                    outVideo = cv2.VideoWriter(timestr, fourcc, 15.0, (width, height))
-                    print("[INFO] Started recording video:", timestr)
+                exit()
 
         if args["view"]:
             cv2.imshow('frame', frame)
@@ -253,6 +246,7 @@ if __name__ == "__main__":
     # Set up argument parser
     parser = argparse.ArgumentParser(description="Human movement detection from video stream")
     parser.add_argument('--video', required=True, help='URL of the video stream or path to video file')
+    parser.add_argument("--view", required=False, help="view the detection on video player")
     
     args_parser = parser.parse_args()
     

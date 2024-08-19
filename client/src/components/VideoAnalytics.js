@@ -3,6 +3,7 @@ import Box from '@mui/material/Box';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
+import TimeSelection from "./TimeSelection";
 
 function VideoAnalytics({ onAnalyticsChange }) {
     const [analyticsEnabled, setAnalyticsEnabled] = React.useState("No");
@@ -11,7 +12,7 @@ function VideoAnalytics({ onAnalyticsChange }) {
     const handleChange = (event) => {
         const value = event.target.value;
         setAnalyticsEnabled(value);
-        onAnalyticsChange(value);
+        onAnalyticsChange(value)
     };
 
     return (
@@ -27,8 +28,10 @@ function VideoAnalytics({ onAnalyticsChange }) {
                     <MenuItem value="Yes">Yes</MenuItem>
                     <MenuItem value="No">No</MenuItem>
                 </Select>
+                <TimeSelection />
             </FormControl>
         </Box>
+
     );
 }
 

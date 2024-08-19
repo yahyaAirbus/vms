@@ -409,8 +409,20 @@ app.post('/add-recording', upload.single('video'), async (req, res) => {
     };
 
     try {
-        // Upload video to S3
-        const uploadResult = await s3.upload(params).promise();
+        // Create an S3 upload instance with a progress callback
+        const upload = s3.upload(params);
+
+        // Track progress using the `httpUploadProgress` event
+        upload.on('httpUploadProgress', (progress) => {
+            const progressPercentage = Math.round((progress.loaded / progress.total) * 100);
+            console.log(`Upload Progress: ${progressPercentage}%`);
+
+            // Optional: Send progress updates back to the client via WebSockets or Server-Sent Events (SSE)
+            // For now, we are just logging it on the server-side
+        });
+
+        // Wait for the upload to complete
+        const uploadResult = await upload.promise();
         console.log('Upload successful:', uploadResult.Location);
 
         // Remove the file from local storage after upload
