@@ -5,6 +5,7 @@ const app = express();
 const AWS = require("aws-sdk");
 const axios = require("axios");
 const { exec } = require('child_process');
+const { spawn } = require('child_process');
 const PORT = 3001;
 const fs = require("fs");
 const { v4: uuidv4 } = require('uuid');
@@ -302,7 +303,7 @@ app.post("/switch_stream", async (req, res) => {
 //extreact HLS link from from a regualr youtube link
 async function getHlsLinkFromYoutube(youtubeUrl) {
     try {
-        const command = `yt-dlp -g "${youtubeUrl}"`;
+        const command = `yt-dlp -g ${youtubeUrl}`;
         const result = execSync(command, { encoding: 'utf8' }).trim();
         return result;
     } catch (err) {
@@ -312,21 +313,46 @@ async function getHlsLinkFromYoutube(youtubeUrl) {
 }
 
 //convert HLS to RTSP to stream it to rtsp server
-async function hlsToRtsp(hlsUrl, name) {
-    return new Promise((resolve, reject) => {
-        const rtsp_url = `rtsp://3.142.212.147:8554/test`;
-        const ffmpegCommand = `ffmpeg -re -i "${hlsUrl}" -c:v copy -f rtsp "${rtsp_url}"`;
 
-        exec(ffmpegCommand, (error, stdout, stderr) => {
-            if (error) {
-                console.error(`Error streaming HLS to RTSP: ${stderr}`);
-                reject(`Error streaming HLS to RTSP: ${stderr}`);
-                return;
+
+function hlsToRtsp(hlsUrl, name) {
+    return new Promise((resolve, reject) => {
+        const rtspUrl = `rtsp://localhost:8554/${name}`;
+        const vlcArgs = [
+            hlsUrl,
+            '--sout', `#transcode{vcodec=h264,vb=15000,acodec=none}:rtp{sdp=${rtspUrl}}`,
+            '--rtsp-host=127.0.0.1',
+            '--no-audio',
+            '--intf', 'dummy', // Use dummy interface to avoid GUI
+            '--rtsp-port', '8554', // Explicitly set RTSP port
+            '--ttl', '1', // Set TTL to 1 for multicast (optional, might not be needed)
+            '--sout-rtp-caching', '500' // Adjust RTP caching if needed
+        ];
+
+        const vlcProcess = spawn('vlc', vlcArgs);
+
+        vlcProcess.stdout.on('data', (data) => {
+            console.log(`stdout: ${data}`);
+        });
+
+        vlcProcess.stderr.on('data', (data) => {
+            console.error(`stderr: ${data}`);
+        });
+
+        vlcProcess.on('close', (code) => {
+            if (code === 0) {
+                resolve(rtspUrl);
+            } else {
+                reject(`VLC process exited with code ${code}`);
             }
-            resolve(rtsp_url);
+        });
+
+        vlcProcess.on('error', (error) => {
+            reject(`Error starting VLC: ${error}`);
         });
     });
 }
+
 
 //adding youtube videos to DynamoDB
 app.post('/youtube-to-rtsp', async (req, res) => {
@@ -341,7 +367,7 @@ app.post('/youtube-to-rtsp', async (req, res) => {
         const hlsUrl = await hlsUrlPromise;
         console.log(`HLS URL: ${hlsUrl}`);
 
-        const rtspUrlPromise = hlsToRtsp(hlsUrl, name);
+        const rtspUrlPromise = hlsToRtsp(hlsUrl);
         const rtspUrl = await rtspUrlPromise;
         console.log(`RTSP URL: ${rtspUrl}`);
 
@@ -366,7 +392,7 @@ app.post('/youtube-to-rtsp', async (req, res) => {
         const putPromise = docClient.put(putParams).promise();
         await putPromise;
 
-        const externalApiUrl = `http://demo:demo@3.142.212.147:8083/stream/demoStream/channel/${newChannelId}/add`;
+        const externalApiUrl = `http://demo:demo@127.0.0.1:8083/stream/demoStream/channel/${newChannelId}/add`;
         const externalApiBody = {
             name: name,
             url: rtspUrl,
@@ -440,7 +466,7 @@ app.post('/add-recording', upload.single('video'), async (req, res) => {
     }
 });
 
-//stream recording to rtsp server
+//stream recording to rtsp server to view it on agnet
 app.post('/share-recording/:recordingKey', async (req, res) => {
     const recordingKey = req.params.recordingKey;
     try {

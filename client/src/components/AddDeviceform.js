@@ -4,6 +4,7 @@ import Button from '@mui/material/Button';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import VideoAnalytics from '../components/VideoAnalytics';
+import TimeSelection from './TimeSelection';
 
 function AddDeviceForm() {
     const [deviceName, setDeviceName] = useState('');
@@ -92,6 +93,7 @@ function AddDeviceForm() {
                 <VideoAnalytics
                     onAnalyticsChange={setAnalyticsEnabled}
                 />
+                <TimeSelection analyticsEnabled={analyticsEnabled} />
             </div>
 
             <div className="add-button-container">

@@ -3,7 +3,6 @@ import Login from './pages/Login';
 import Home from './pages/Home';
 import LiveVideo from './pages/Live';
 import Archive from './pages/Archive';
-import Devices from './pages/Devices';
 import AddDevice from './pages/Add-device';
 import AddRecording from './pages/AddRecording';
 import AddExternalVid from './components/AddExternalVid';
@@ -38,14 +37,6 @@ function App() {
               element={
                 <PrivateRoute>
                   <Archive />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/Devices"
-              element={
-                <PrivateRoute>
-                  <Devices />
                 </PrivateRoute>
               }
             />

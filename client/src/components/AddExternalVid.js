@@ -5,12 +5,14 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import VideoAnalytics from './VideoAnalytics';
 import Sidebar from './Sidebar';
-
-
+import TimeSelection from './TimeSelection';
 
 function AddExternalVid() {
     const [streamName, setStreamName] = useState('');
     const [youtubeUrl, setYoutubeUrl] = useState('');
+    const [analyticsEnabled, setAnalyticsEnabled] = useState("No");
+    const [channel, setChannel] = useState(null);
+
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -31,6 +33,12 @@ function AddExternalVid() {
                 draggable: true,
                 progress: undefined,
             });
+            setChannel(response.data.channel)
+
+            if (analyticsEnabled === "Yes" && response.data.response) {
+                await triggerAnalytics(response.data.channel);
+            }
+
         } catch (error) {
             console.error('Error adding stream:', error);
             toast.error('Error adding stream.', {
@@ -45,6 +53,16 @@ function AddExternalVid() {
         }
         setStreamName('');
         setYoutubeUrl('');
+    };
+    const triggerAnalytics = async (channel) => {
+        try {
+            const response = await axios.post('http://127.0.0.1:3001/rtsp-analytics', {
+                channel: channel
+            });
+            console.log("Analytics triggered:", response.data);
+        } catch (error) {
+            console.error("Error triggering analytics:", error.response || error.message || error);
+        }
     };
 
     return (
@@ -69,7 +87,8 @@ function AddExternalVid() {
                         value={youtubeUrl}
                         onChange={(e) => setYoutubeUrl(e.target.value)}
                     />
-                    <VideoAnalytics />
+                    <VideoAnalytics onAnalyticsChange={setAnalyticsEnabled} />
+                    <TimeSelection analyticsEnabled={analyticsEnabled} />
                 </div>
 
                 <div className="add-button-container">

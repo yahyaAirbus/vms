@@ -1,6 +1,5 @@
 import React from "react";
 import { HiOutlineVideoCamera } from "react-icons/hi2";
-import { GiCctvCamera } from "react-icons/gi";
 import { IoMdAdd } from "react-icons/io";
 import { IoIosRecording } from "react-icons/io";
 import { RiHome6Line } from "react-icons/ri";
@@ -22,11 +21,6 @@ export const SidebarData = [
         title: 'Archive',
         icon: < IoIosRecording />,
         link: '/Archive',
-    },
-    {
-        title: 'Devices',
-        icon: <GiCctvCamera />,
-        link: '/Devices',
     },
     {
         title: 'Add device',

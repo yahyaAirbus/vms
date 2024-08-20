@@ -1,7 +1,7 @@
-import gi #type: ignore
+import gi 
 gi.require_version('Gst', '1.0')
 gi.require_version('GstRtspServer', '1.0')
-from gi.repository import Gst, GstRtspServer, GLib # type: ignore
+from gi.repository import Gst, GstRtspServer, GLib 
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import threading
@@ -125,4 +125,8 @@ if __name__ == '__main__':
         http_server.shutdown()
         http_server_thread.join()
         loop.quit()
+
+
+
+
 

@@ -6,12 +6,17 @@ import VideoStatus from '../components/VideoStatus';
 import axios from 'axios';
 import Recording from '../components/Recording';
 import Stream from '../components/Stream';
-import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
+import { FaTrash } from 'react-icons/fa';
+
 const LiveVideo = () => {
     const [liveChannels, setLiveChannels] = useState([]);
     const [channelNames, setChannelNames] = useState({});
     const videoRefs = useRef({});
+    const [devices, setDevices] = useState([])
     const [isError, setIsError] = useState({});
 
     const handleError = (channelId) => {
@@ -69,6 +74,27 @@ const LiveVideo = () => {
         };
     }, [liveChannels]);
 
+    const handleDelete = async (channel) => {
+        try {
+            await axios.delete(`http://127.0.0.1:3001/device/${channel}`);
+            setDevices(devices.filter(device => device.channel !== channel));
+            toast.success('Device deleted successfully');
+        } catch (error) {
+            console.error('Error deleting device:', error);
+        }
+    };
+
+    const confirmDelete = (channel) => {
+        confirmDialog({
+            message: 'Are you sure you want to delete this device?',
+            header: 'Confirmation',
+            icon: 'pi pi-exclamation-triangle',
+            accept: () => handleDelete(channel),
+            reject: () => toast.info('Deletion cancelled'),
+            className: 'custom-confirm-dialog'
+        });
+    };
+
     return (
         <>
             <Sidebar />
@@ -90,7 +116,9 @@ const LiveVideo = () => {
                                 <VideoStatus channelId={channel} />
                                 <Recording channel={channel} />
                                 <Stream channel={channel} />
+                                <FaTrash size={24} onClick={() => confirmDelete(channel)} className="delete-icon" />
                                 <ToastContainer />
+                                <ConfirmDialog />
                             </div>
                         </div>
                     ))}
