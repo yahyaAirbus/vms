@@ -1,5 +1,4 @@
 const express = require("express");
-const path = require('path');
 const cors = require("cors");
 const app = express();
 const AWS = require("aws-sdk");
@@ -12,6 +11,14 @@ const { v4: uuidv4 } = require('uuid');
 const multer = require('multer');
 const { execSync } = require('child_process');
 const { PythonShell } = require('python-shell')
+const cron = require("node-cron")
+const dayjs = require('dayjs');
+const utc = require('dayjs/plugin/utc');
+const timezoneIana = require('dayjs-timezone-iana-plugin');
+
+dayjs.extend(utc);
+dayjs.extend(timezoneIana);
+
 
 require('dotenv').config();
 app.use(express.json());
@@ -442,9 +449,6 @@ app.post('/add-recording', upload.single('video'), async (req, res) => {
         upload.on('httpUploadProgress', (progress) => {
             const progressPercentage = Math.round((progress.loaded / progress.total) * 100);
             console.log(`Upload Progress: ${progressPercentage}%`);
-
-            // Optional: Send progress updates back to the client via WebSockets or Server-Sent Events (SSE)
-            // For now, we are just logging it on the server-side
         });
 
         // Wait for the upload to complete
@@ -483,47 +487,105 @@ app.post('/share-recording/:recordingKey', async (req, res) => {
     }
 });
 
-// Endpoint to start video analytics for live videos
+let scheduledJob = null;
+
 app.post('/rtsp-analytics', (req, res) => {
-    const { channel } = req.body;
-    res.json({ message: `Request received, and the channel is ${channel}` });
-    const scriptPath = '/Users/yahya/Desktop/prog/vms/server/movement_detection/main.py';
-    const options = {
-        pythonPath: '/Users/yahya/Desktop/prog/vms/server/venv/bin/python',
-        args: [`--video`, `http://127.0.0.1:8083/stream/demoStream/channel/${channel}/hls/live/index.m3u8`]
-    };
+    const { channel, startTime, endTime } = req.body;
 
-    PythonShell.run(scriptPath, options, (err, result) => {
-        if (err) {
-            console.error('Error executing script:', err);
-            return res.status(500).json({ error: 'Failed to trigger video analytics' });
-        }
-        console.log('Script result:', result);
-        res.json({ message: 'Video analytics started successfully', output: result });
+    // Parse startTime and endTime
+    const start = dayjs(startTime);
+    const end = dayjs(endTime);
+
+    // Calculate the duration in milliseconds
+    const durationInMilliseconds = end.diff(start);
+
+    // Schedule the job to start at the specified startTime
+    scheduledJob = cron.schedule(`${start.minute()} ${start.hour()} * * *`, () => {
+        console.log('Starting Python script for RTSP stream...');
+
+        const pythonProcess = spawn('/Users/yahya/Desktop/prog/vms/server/venv/bin/python', [
+            '/Users/yahya/Desktop/prog/vms/server/movement_detection/main.py',
+            '--video',
+            `http://127.0.0.1:8083/stream/demoStream/channel/${channel}/hls/live/index.m3u8`
+        ]);
+
+        pythonProcess.stdout.on('data', (data) => {
+            console.log(`stdout: ${data}`);
+        });
+
+        pythonProcess.stderr.on('data', (data) => {
+            console.error(`stderr: ${data}`);
+        });
+
+        pythonProcess.on('close', (code) => {
+            console.log(`Python script exited with code ${code}`);
+        });
+
+        // Schedule stopping the script after the calculated duration
+        setTimeout(() => {
+            console.log('Stopping Python script...');
+            pythonProcess.kill('SIGTERM'); // Gracefully terminate the process
+        }, durationInMilliseconds);
+
+    }, {
+        scheduled: true,
+        timezone: "Your/Timezone"
     });
+
+    res.json({ message: `RTSP video analytics scheduled from ${start.format('HH:mm')} to ${end.format('HH:mm')}` });
 });
 
-// Endpoint to start video analytics for recorded videos
 app.post('/recording-analytics', (req, res) => {
-    const { recordingKey } = req.body;
+    const { recordingKey, startTime, endTime, timezone } = req.body;
 
-    res.json({ message: `Request received for recording key: ${recordingKey}` });
+    // Parse startTime and endTime if they are strings, and convert them to the user's timezone
+    const start = dayjs(startTime).tz(timezone);
+    const end = dayjs(endTime).tz(timezone);
 
-    const scriptPath = '/Users/yahya/Desktop/prog/vms/server/movement_detection/main.py';
-    const options = {
-        pythonPath: '/Users/yahya/Desktop/prog/vms/server/venv/bin/python',
-        args: ['--video', `${cloudfront}/${recordingKey}`]
-    };
+    // Calculate the duration in milliseconds
+    const durationInMilliseconds = end.diff(start);
 
-    PythonShell.run(scriptPath, options, (err, result) => {
-        if (err) {
-            console.error('Error executing script:', err);
-            return res.status(500).json({ error: 'Failed to trigger video analytics' });
-        }
-        console.log('Script result:', result);
-        res.json({ message: 'Video analytics started successfully', output: result });
+    // Cancel any existing job
+    if (scheduledJob) {
+        scheduledJob.stop();
+    }
+
+    // Schedule the job to start at the specified startTime
+    scheduledJob = cron.schedule(`${start.minute()} ${start.hour()} * * *`, () => {
+        console.log('Starting Python script for recorded video...');
+
+        const pythonProcess = spawn('/Users/yahya/Desktop/prog/vms/server/venv/bin/python', [
+            '/Users/yahya/Desktop/prog/vms/server/movement_detection/main.py',
+            '--video',
+            `${cloudfront}/${recordingKey}`
+        ]);
+
+        pythonProcess.stdout.on('data', (data) => {
+            console.log(`stdout: ${data}`);
+        });
+
+        pythonProcess.stderr.on('data', (data) => {
+            console.error(`stderr: ${data}`);
+        });
+
+        pythonProcess.on('close', (code) => {
+            console.log(`Python script exited with code ${code}`);
+        });
+
+        // Schedule stopping the script after the calculated duration
+        setTimeout(() => {
+            console.log('Stopping Python script...');
+            pythonProcess.kill('SIGTERM'); // Gracefully terminate the process
+        }, durationInMilliseconds);
+
+    }, {
+        scheduled: true,
+        timezone: timezone // Use the timezone received from the frontend
     });
+
+    res.json({ message: `Video analytics for recording scheduled from ${start.format('HH:mm')} to ${end.format('HH:mm')} in timezone ${timezone}` });
 });
+
 
 //testing if the server is running 
 app.listen(PORT, () => {
