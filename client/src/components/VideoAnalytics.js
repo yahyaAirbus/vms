@@ -3,15 +3,20 @@ import Box from '@mui/material/Box';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
+import TimeSelection from './TimeSelection';
 
 function VideoAnalytics({ onAnalyticsChange }) {
     const [analyticsEnabled, setAnalyticsEnabled] = React.useState("No");
+    const [timeRange, setTimeRange] = React.useState({ startTime: null, endTime: null });
 
-    // Call the provided callback to update the parent component
-    const handleChange = (event) => {
+    const handleAnalyticsChange = (event) => {
         const value = event.target.value;
         setAnalyticsEnabled(value);
-        onAnalyticsChange(value)
+        onAnalyticsChange(value);
+    };
+
+    const handleTimeChange = (newTimeRange) => {
+        setTimeRange(newTimeRange);
     };
 
     return (
@@ -21,15 +26,14 @@ function VideoAnalytics({ onAnalyticsChange }) {
                 <Select
                     id="video-analytics"
                     value={analyticsEnabled}
-                    label="Video analytics"
-                    onChange={handleChange}
+                    label="Video Analytics"
+                    onChange={handleAnalyticsChange}
                 >
                     <MenuItem value="Yes">Yes</MenuItem>
                     <MenuItem value="No">No</MenuItem>
                 </Select>
             </FormControl>
         </Box>
-
     );
 }
 

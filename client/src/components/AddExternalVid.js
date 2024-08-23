@@ -88,7 +88,6 @@ function AddExternalVid() {
                         onChange={(e) => setYoutubeUrl(e.target.value)}
                     />
                     <VideoAnalytics onAnalyticsChange={setAnalyticsEnabled} />
-                    <TimeSelection analyticsEnabled={analyticsEnabled} />
                 </div>
 
                 <div className="add-button-container">

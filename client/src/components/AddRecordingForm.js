@@ -11,7 +11,9 @@ function AddRecordingForm() {
     const [recordingName, setRecordingName] = useState('');
     const [videoFile, setVideoFile] = useState(null);
     const [analyticsEnabled, setAnalyticsEnabled] = useState("No");
-
+    const [startTime, setStartTime] = useState(null);
+    const [endTime, setEndTime] = useState(null);
+    const [timezone, setTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
     const toastId = useRef(null);
 
     const handleFileChange = (event) => {
@@ -34,20 +36,19 @@ function AddRecordingForm() {
 
                     if (toastId.current === null) {
                         toastId.current = toast.info(`Please wait, Upload in Progress`, {
-                            progress: progress / 100,  // Progress should be between 0 and 1
+                            progress: progress / 100,
                             autoClose: false,
                             isLoading: true,
                         });
                     } else {
                         toast.update(toastId.current, {
                             render: `Please wait, Upload in Progress`,
-                            progress: progress / 100,  // Update progress bar
+                            progress: progress / 100,
                         });
                     }
                 },
             });
 
-            // Once the upload is complete, update the toast and mark it as done
             toast.update(toastId.current, {
                 render: "Upload Complete!",
                 type: "success",
@@ -59,7 +60,7 @@ function AddRecordingForm() {
 
             // Trigger analytics if enabled
             if (analyticsEnabled === "Yes" && recordingKey) {
-                await triggerAnalytics(recordingKey);
+                await triggerAnalytics(recordingKey, startTime, endTime, timezone);
             }
         } catch (error) {
             console.error('Error adding recording:', error);
@@ -73,10 +74,13 @@ function AddRecordingForm() {
         }
     };
 
-    const triggerAnalytics = async (recordingKey) => {
+    const triggerAnalytics = async (recordingKey, startTime, endTime, timezone) => {
         try {
             const response = await axios.post('http://127.0.0.1:3001/recording-analytics', {
-                recordingKey: recordingKey
+                recordingKey: recordingKey,
+                startTime: startTime,
+                endTime: endTime,
+                timezone: timezone
             });
             console.log("Analytics triggered:", response.data);
         } catch (error) {
@@ -108,7 +112,16 @@ function AddRecordingForm() {
                             onChange={handleFileChange}
                         />
                         <VideoAnalytics onAnalyticsChange={setAnalyticsEnabled} />
-                        <TimeSelection analyticsEnabled={analyticsEnabled} />
+                        {analyticsEnabled === "Yes" && (
+                            <div>
+                                <TimeSelection
+                                    startTime={startTime}
+                                    setStartTime={setStartTime}
+                                    endTime={endTime}
+                                    setEndTime={setEndTime}
+                                />
+                            </div>
+                        )}
                     </div>
                     <div className="add-button-container">
                         <Button

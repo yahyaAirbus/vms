@@ -23,7 +23,7 @@ function AddDeviceForm() {
             const response = await axios.post('http://127.0.0.1:3001/device', deviceData);
             console.log(response.data);
 
-            setChannel(response.data.channel);  // Store the channel number in state
+            setChannel(response.data.channel); // Store the channel number in state
 
             toast.success('Device added successfully!', {
                 position: "top-right",
@@ -93,7 +93,6 @@ function AddDeviceForm() {
                 <VideoAnalytics
                     onAnalyticsChange={setAnalyticsEnabled}
                 />
-                <TimeSelection analyticsEnabled={analyticsEnabled} />
             </div>
 
             <div className="add-button-container">
