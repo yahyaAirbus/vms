@@ -10,6 +10,9 @@ function AddDeviceForm() {
     const [deviceName, setDeviceName] = useState('');
     const [rtspUrl, setRtspUrl] = useState('');
     const [channel, setChannel] = useState(null);  // State to store the channel
+    const [startTime, setStartTime] = useState(null);
+    const [endTime, setEndTime] = useState(null);
+    const [timezone, setTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
     const [analyticsEnabled, setAnalyticsEnabled] = useState("No"); // State to track analytics
 
     const handleSubmit = async (event) => {
@@ -37,7 +40,7 @@ function AddDeviceForm() {
 
             // Check if analytics should be triggered after device is added
             if (analyticsEnabled === "Yes" && response.data.channel) {
-                await triggerAnalytics(response.data.channel);
+                await triggerAnalytics(response.data.channel, startTime, endTime, timezone);
             }
         } catch (error) {
             console.error('Error adding device:', error);
@@ -56,14 +59,17 @@ function AddDeviceForm() {
     };
 
     // Function to trigger analytics
-    const triggerAnalytics = async (channel) => {
+    const triggerAnalytics = async (channel, startTime, endTime, timezone) => {
         try {
             const response = await axios.post('http://127.0.0.1:3001/rtsp-analytics', {
-                channel: channel
+                channel,
+                startTime,
+                endTime,
+                timezone
             });
-            console.log("Analytics triggered:", response.data);
+            console.log("RTSP Analytics triggered:", response.data);
         } catch (error) {
-            console.error("Error triggering analytics:", error.response || error.message || error);
+            console.error("Error triggering RTSP analytics:", error.response || error.message || error);
         }
     };
 
@@ -87,12 +93,17 @@ function AddDeviceForm() {
                     value={rtspUrl}
                     onChange={(e) => setRtspUrl(e.target.value)}
                 />
-            </div>
-
-            <div className="add-form-group">
-                <VideoAnalytics
-                    onAnalyticsChange={setAnalyticsEnabled}
-                />
+                <VideoAnalytics onAnalyticsChange={setAnalyticsEnabled} />
+                {analyticsEnabled === "Yes" && (
+                    <div>
+                        <TimeSelection
+                            startTime={startTime}
+                            setStartTime={setStartTime}
+                            endTime={endTime}
+                            setEndTime={setEndTime}
+                        />
+                    </div>
+                )}
             </div>
 
             <div className="add-button-container">

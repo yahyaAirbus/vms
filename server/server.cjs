@@ -320,8 +320,6 @@ async function getHlsLinkFromYoutube(youtubeUrl) {
 }
 
 //convert HLS to RTSP to stream it to rtsp server
-
-
 function hlsToRtsp(hlsUrl, name) {
     return new Promise((resolve, reject) => {
         const rtspUrl = `rtsp://localhost:8554/${name}`;
@@ -330,10 +328,10 @@ function hlsToRtsp(hlsUrl, name) {
             '--sout', `#transcode{vcodec=h264,vb=15000,acodec=none}:rtp{sdp=${rtspUrl}}`,
             '--rtsp-host=127.0.0.1',
             '--no-audio',
-            '--intf', 'dummy', // Use dummy interface to avoid GUI
-            '--rtsp-port', '8554', // Explicitly set RTSP port
-            '--ttl', '1', // Set TTL to 1 for multicast (optional, might not be needed)
-            '--sout-rtp-caching', '500' // Adjust RTP caching if needed
+            '--intf', 'dummy',
+            '--rtsp-port', '8554',
+            '--ttl', '1',
+            '--sout-rtp-caching', '500'
         ];
 
         const vlcProcess = spawn('vlc', vlcArgs);
@@ -458,11 +456,10 @@ app.post('/add-recording', upload.single('video'), async (req, res) => {
         // Remove the file from local storage after upload
         fs.unlinkSync(videoFile.path);
 
-        // Send response with the recording key
         res.status(200).json({
             message: 'Video uploaded to S3',
             url: uploadResult.Location,
-            recordingKey: videoFile.filename  // Include the recordingKey in the response
+            recordingKey: videoFile.filename
         });
     } catch (error) {
         console.error('Error uploading video to S3:', error);
@@ -489,15 +486,20 @@ app.post('/share-recording/:recordingKey', async (req, res) => {
 
 let scheduledJob = null;
 
+//endpoint to trigger the movement detection for live streams
 app.post('/rtsp-analytics', (req, res) => {
-    const { channel, startTime, endTime } = req.body;
+    const { channel, startTime, endTime, timezone } = req.body;
 
-    // Parse startTime and endTime
-    const start = dayjs(startTime);
-    const end = dayjs(endTime);
+    // Parse startTime and endTime, and convert them to the user's timezone
+    const start = dayjs(startTime).tz(timezone);
+    const end = dayjs(endTime).tz(timezone);
 
-    // Calculate the duration in milliseconds
     const durationInMilliseconds = end.diff(start);
+
+    // Cancel any existing job
+    if (scheduledJob) {
+        scheduledJob.stop();
+    }
 
     // Schedule the job to start at the specified startTime
     scheduledJob = cron.schedule(`${start.minute()} ${start.hour()} * * *`, () => {
@@ -524,17 +526,18 @@ app.post('/rtsp-analytics', (req, res) => {
         // Schedule stopping the script after the calculated duration
         setTimeout(() => {
             console.log('Stopping Python script...');
-            pythonProcess.kill('SIGTERM'); // Gracefully terminate the process
+            pythonProcess.kill('SIGTERM');
         }, durationInMilliseconds);
 
     }, {
         scheduled: true,
-        timezone: "Your/Timezone"
+        timezone: timezone // Use the timezone received from the frontend
     });
 
-    res.json({ message: `RTSP video analytics scheduled from ${start.format('HH:mm')} to ${end.format('HH:mm')}` });
+    res.json({ message: `RTSP video analytics scheduled from ${start.format('HH:mm')} to ${end.format('HH:mm')} in timezone ${timezone}` });
 });
 
+//endpoint to trigger the movement detection for recordings 
 app.post('/recording-analytics', (req, res) => {
     const { recordingKey, startTime, endTime, timezone } = req.body;
 
@@ -544,12 +547,6 @@ app.post('/recording-analytics', (req, res) => {
 
     // Calculate the duration in milliseconds
     const durationInMilliseconds = end.diff(start);
-
-    // Cancel any existing job
-    if (scheduledJob) {
-        scheduledJob.stop();
-    }
-
     // Schedule the job to start at the specified startTime
     scheduledJob = cron.schedule(`${start.minute()} ${start.hour()} * * *`, () => {
         console.log('Starting Python script for recorded video...');

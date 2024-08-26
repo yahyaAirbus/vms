@@ -429,7 +429,7 @@ input {
 }
 
 .custom-confirm-dialog {
-    background-color: rgba(148, 149, 154, 0.13);
+    background-color: rgb(223, 224, 232);
     border-radius: 15px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.189);
 }
@@ -488,9 +488,4 @@ input {
 
 .custom-confirm-dialog .p-icon {
     color: #ffffff;
-}
-
-.time-selection {
-    text-align-last: left;
-
 }

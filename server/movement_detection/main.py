@@ -107,6 +107,17 @@ def send_message(bearer_token, sender_msisdn, image):
     except requests.exceptions.RequestException as e:
         print(f"An error occurred: {e}")
 
+# function to stream the video when a human is detected
+def shareVideo(video_url):
+    try:
+        response = requests.post("http://127.0.0.1:8084/share-recording", json={"videoUrl": video_url})
+        if response.status_code == 200:
+            print("[INFO] Recording shared successfully")
+        else:
+            print(f"[ERROR] Failed to share recording: {response.text}")
+    except Exception as e:
+        print(f"[ERROR] An error occurred while sharing the recording: {e}")
+
 # Function to get frame from the video stream
 def getFrame(url, vs):
     print(f"[INFO] Fetching frame from stream: {url}")
@@ -220,6 +231,7 @@ def process_frame(video_url):
                 cv2.imwrite(image_path, frame)
                 send_emergency_message(bearer_token, "358408346118")
                 send_message(bearer_token, "358408346118", image_path)
+                shareVideo(video_url)
                 exit()
 
         if args["view"]:
@@ -246,7 +258,6 @@ if __name__ == "__main__":
     # Set up argument parser
     parser = argparse.ArgumentParser(description="Human movement detection from video stream")
     parser.add_argument('--video', required=True, help='URL of the video stream or path to video file')
-    parser.add_argument("--view", required=False, help="view the detection on video player")
     
     args_parser = parser.parse_args()
     

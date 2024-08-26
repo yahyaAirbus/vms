@@ -76,7 +76,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         post_data = self.rfile.read(content_length)
         data = json.loads(post_data)
         videoUrl = data.get('videoUrl')
-        print(f"Received switch_stream request for channel: {videoUrl}")
+        print(f"Received share recording request for channel: {videoUrl}")
 
         if videoUrl is not None:
             my_server.factory.pipeline_str = (
