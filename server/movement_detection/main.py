@@ -1,5 +1,4 @@
 import cv2
-import time
 import imutils
 import numpy as np
 import os
@@ -107,14 +106,25 @@ def send_message(bearer_token, sender_msisdn, image):
     except requests.exceptions.RequestException as e:
         print(f"An error occurred: {e}")
 
-# function to stream the video when a human is detected
-def shareVideo(video_url):
+# function to stream the recorded video when a human is detected
+def shareRecording(video_url):
     try:
-        response = requests.post("http://127.0.0.1:8084/share-recording", json={"videoUrl": video_url})
+        response = requests.post("http://3.16.31.225:8084/share-recording", json={"videoUrl": video_url})
         if response.status_code == 200:
             print("[INFO] Recording shared successfully")
         else:
             print(f"[ERROR] Failed to share recording: {response.text}")
+    except Exception as e:
+        print(f"[ERROR] An error occurred while sharing the recording: {e}")
+
+# function to stream the live video when a human is detected
+def shareLive(video_url):
+    try:
+        response = requests.post("http://3.16.31.225:8084/switch-stream", json={"video_url": video_url})
+        if response.status_code == 200:
+            print("[INFO] Live shared successfully")
+        else:
+           print(f"[ERROR] Failed to share recording: {response.text}")
     except Exception as e:
         print(f"[ERROR] An error occurred while sharing the recording: {e}")
 
@@ -231,7 +241,12 @@ def process_frame(video_url):
                 cv2.imwrite(image_path, frame)
                 send_emergency_message(bearer_token, "358408346118")
                 send_message(bearer_token, "358408346118", image_path)
-                shareVideo(video_url)
+               
+                if video_url:
+                  if video_url[-4:] == 'm3u8':
+                    shareLive(video_url)
+                  else:
+                    shareRecording(video_url)
                 exit()
 
         if args["view"]:

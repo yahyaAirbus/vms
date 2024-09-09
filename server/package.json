@@ -5,7 +5,6 @@
     "@aws-sdk/credential-provider-ini": "^3.576.0",
     "@aws-sdk/lib-dynamodb": "^3.576.0",
     "@aws-sdk/util-dynamodb": "^3.576.0",
-    "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "aws-sdk": "^2.1653.0",
     "axios": "^1.6.8",
     "cors": "^2.8.5",
@@ -19,7 +18,6 @@
     "fluent-ffmpeg": "^2.1.2",
     "fs": "^0.0.1-security",
     "glib": "^1.3.0",
-    "gstreamer-superficial": "^1.7.4",
     "http": "^0.0.1-security",
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
@@ -35,7 +33,8 @@
   },
   "scripts": {
     "dev": "nodemon server.cjs",
-    "build": "npm install"
+    "python": "python3 /app/rtsp_server/rtsp_server.py",
+    "start": "concurrently \"npm run dev\" \"npm run python\""
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

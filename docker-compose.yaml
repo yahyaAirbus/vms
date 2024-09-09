@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  client:
+    build: ./client
+    container_name: vms-client
+    ports:
+      - "3000:3000"
+    stdin_open: true
+    tty: true
+  server:
+    build: ./server
+    container_name: vms-server
+    ports:
+      - "3001:3001"
+      - "8084:8084"
+      - "8554:8554"
+    env_file:
+      - ./server/.env
