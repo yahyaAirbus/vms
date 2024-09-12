@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { SidebarData } from './SidebarData';
 import '../App.css';
 import { TbLogout } from "react-icons/tb";
@@ -8,6 +8,32 @@ import { useNavigate } from 'react-router-dom';
 function Sidebar() {
     const { isLoggedIn, logout } = useAuth();
     const navigate = useNavigate();
+    const [viewHeight, setViewHeight] = useState('100vh');
+
+    useEffect(() => {
+        const updateHeight = () => {
+            const sidebar = document.querySelector('.Sidebar');
+            if (sidebar) {
+                const parentHeight = sidebar.parentElement?.clientHeight || document.documentElement.clientHeight;
+                setViewHeight(parentHeight + 'px');
+            }
+        };
+        const timeoutId = setTimeout(updateHeight, 10);
+
+        window.addEventListener('resize', updateHeight);
+
+        const observer = new MutationObserver(() => {
+            updateHeight();
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
+
+        return () => {
+            clearTimeout(timeoutId);
+            window.removeEventListener('resize', updateHeight);
+            observer.disconnect();
+        };
+    }, []);
 
     const handleLogout = () => {
         logout();
@@ -15,7 +41,7 @@ function Sidebar() {
     };
 
     return (
-        <div className='Sidebar'>
+        <div className='Sidebar' style={{ height: viewHeight }}>
             <ul className='SidebarList'>
                 {SidebarData.map((val, key) => (
                     <li
@@ -41,6 +67,6 @@ function Sidebar() {
             </ul>
         </div>
     );
-};
+}
 
 export default Sidebar;
