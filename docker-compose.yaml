@@ -19,3 +19,11 @@ services:
     env_file:
       - ./server/.env
     image: yahyakhafif/vms:v1-server
+  rtsp-to-web:
+    image: ghcr.io/deepch/rtsptoweb:latest
+    container_name: rtsp-to-web
+    ports:
+      - "8083:8083"
+    restart: unless-stopped
+    volumes:
+      - ./server/rtsp_config.json:/config/config.json

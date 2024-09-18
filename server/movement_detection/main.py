@@ -109,7 +109,7 @@ def send_message(bearer_token, sender_msisdn, image):
 # function to stream the recorded video when a human is detected
 def shareRecording(video_url):
     try:
-        response = requests.post("http://3.16.31.225:8084/share-recording", json={"videoUrl": video_url})
+        response = requests.post("http://127.0.0.1:8084/share-recording", json={"videoUrl": video_url})
         if response.status_code == 200:
             print("[INFO] Recording shared successfully")
         else:
@@ -120,7 +120,7 @@ def shareRecording(video_url):
 # function to stream the live video when a human is detected
 def shareLive(video_url):
     try:
-        response = requests.post("http://3.16.31.225:8084/switch-stream", json={"video_url": video_url})
+        response = requests.post("http://127.0.0.1:8084/switch-stream", json={"video_url": video_url})
         if response.status_code == 200:
             print("[INFO] Live shared successfully")
         else:
@@ -150,7 +150,7 @@ def getDetection(args, smallFrame, net, CLASSES):
 
 # Load the pre-trained model
 print("[INFO] Loading pre-trained model...")
-net = cv2.dnn.readNetFromCaffe("/Users/yahya/Desktop/prog/vms/server/movement_detection/mobilenet_ssd/MobileNetSSD_deploy.prototxt", "/Users/yahya/Desktop/prog/vms/server/movement_detection/mobilenet_ssd/MobileNetSSD_deploy.caffemodel")
+net = cv2.dnn.readNetFromCaffe("/server/movement_detection/mobilenet_ssd/MobileNetSSD_deploy.prototxt", "/server/movement_detection/mobilenet_ssd/MobileNetSSD_deploy.caffemodel")
 print("[INFO] Model loaded successfully")
 
 # Define the classes for object detection

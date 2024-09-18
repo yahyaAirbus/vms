@@ -113,7 +113,7 @@ app.post("/device", async (req, res) => {
         };
         await docClient.put(putParams).promise();
 
-        const externalApiUrl = `http://demo:demo@3.16.31.225:8083/stream/demoStream/channel/${newChannelId}/add`;
+        const externalApiUrl = `http://demo:demo@127.0.0.1:8083/stream/demoStream/channel/${newChannelId}/add`;
         const externalApiBody = {
             name: name,
             url: rtspUrl,
@@ -192,7 +192,7 @@ app.delete("/device/:channel", async (req, res) => {
     try {
         await docClient.delete(deleteParams).promise();
 
-        const externalApiUrl = `http://demo:demo@3.16.31.225:8083/stream/demoStream/channel/${channel}/delete`;
+        const externalApiUrl = `http://demo:demo@127.0.0.1:8083/stream/demoStream/channel/${channel}/delete`;
         await axios.get(externalApiUrl);
 
         res.status(200).json({ message: "Device deleted successfully" });
@@ -212,7 +212,7 @@ app.post("/record/start", (req, res) => {
         return res.status(400).json({ message: "Channel number is required" });
     }
 
-    const m3u8Url = `http://3.16.31.225:8083/stream/demoStream/channel/${channel}/hls/live/index.m3u8`;
+    const m3u8Url = `http://127.0.0.1:8083/stream/demoStream/channel/${channel}/hls/live/index.m3u8`;
 
     const recordingId = uuidv4();
     outputFilename = `recording_${recordingId}.mp4`;
@@ -299,7 +299,7 @@ app.post("/switch_stream", async (req, res) => {
     }
 
     try {
-        await axios.post('http://3.16.31.225:8084/switch_stream', { channel });
+        await axios.post('http://127.0.0.1:8084/switch_stream', { channel });
         res.status(200).json({ message: `Switched to channel ${channel}` });
     } catch (error) {
         console.error('Error switching stream:', error);
@@ -322,7 +322,7 @@ async function getHlsLinkFromYoutube(youtubeUrl) {
 //convert HLS to RTSP to stream it to rtsp server
 function hlsToRtsp(hlsUrl, name) {
     return new Promise((resolve, reject) => {
-        const rtspUrl = `rtsp://3.16.31.225:8554/${name}`;
+        const rtspUrl = `rtsp://127.0.0.1:8554/${name}`;
         const vlcArgs = [
             hlsUrl,
             '--sout', `#transcode{vcodec=h264,vb=15000,acodec=none}:rtp{sdp=${rtspUrl}}`,
@@ -397,7 +397,7 @@ app.post('/youtube-to-rtsp', async (req, res) => {
         const putPromise = docClient.put(putParams).promise();
         await putPromise;
 
-        const externalApiUrl = `http://demo:demo@3.16.31.225:8083/stream/demoStream/channel/${newChannelId}/add`;
+        const externalApiUrl = `http://demo:demo@127.0.0.1:8083/stream/demoStream/channel/${newChannelId}/add`;
         const externalApiBody = {
             name: name,
             url: rtspUrl,
@@ -476,7 +476,7 @@ app.post('/share-recording/:recordingKey', async (req, res) => {
             Key: recordingKey
         };
         const videoUrl = `${cloudfront}/${recordingKey}`;
-        await axios.post("http://3.16.31.225:8084/share-recording", { videoUrl });
+        await axios.post("http://127.0.0.1:8084/share-recording", { videoUrl });
         res.status(200).json({ message: 'Video URL shared successfully', videoUrl });
     } catch (error) {
         console.error('Error sharing recording:', error.message);
@@ -490,24 +490,21 @@ let scheduledJob = null;
 app.post('/rtsp-analytics', (req, res) => {
     const { channel, startTime, endTime, timezone } = req.body;
 
-    // Parse startTime and endTime, and convert them to the user's timezone
     const start = dayjs(startTime).tz(timezone);
     const end = dayjs(endTime).tz(timezone);
 
     const durationInMilliseconds = end.diff(start);
 
-    // Cancel any existing job
     if (scheduledJob) {
         scheduledJob.stop();
     }
 
-    // Schedule the job to start at the specified startTime
     scheduledJob = cron.schedule(`${start.minute()} ${start.hour()} * * *`, () => {
         console.log('Starting Python script for RTSP stream...');
 
-        const pythonProcess = spawn('/Users/yahya/Desktop/prog/vms/server/venv/bin/python', [
-            '/Users/yahya/Desktop/prog/vms/server/movement_detection/main.py',
-            '--video', `http://3.16.31.225:8083/stream/demoStream/channel/${channel}/hls/live/index.m3u8`]);
+        const pythonProcess = spawn('/server/venv/bin/python', [
+            '/server/movement_detection/main.py',
+            '--video', `http://127.0.0.1:8083/stream/demoStream/channel/${channel}/hls/live/index.m3u8`]);
 
         pythonProcess.stdout.on('data', (data) => {
             console.log(`stdout: ${data}`);
@@ -544,12 +541,11 @@ app.post('/recording-analytics', (req, res) => {
 
     // Calculate the duration in milliseconds
     const durationInMilliseconds = end.diff(start);
-    // Schedule the job to start at the specified startTime
     scheduledJob = cron.schedule(`${start.minute()} ${start.hour()} * * *`, () => {
         console.log('Starting Python script for recorded video...');
 
-        const pythonProcess = spawn('/Users/yahya/Desktop/prog/vms/server/venv/bin/python', [
-            '/Users/yahya/Desktop/prog/vms/server/movement_detection/main.py',
+        const pythonProcess = spawn('/server/venv/bin/python', [
+            '/server/movement_detection/main.py',
             '--video',
             `${cloudfront}/${recordingKey}`
         ]);
