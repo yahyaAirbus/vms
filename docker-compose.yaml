@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  client:
+    image: yahyakhafif/vms:v1-client
+    container_name: vms-client
+    ports:
+      - "3000:3000"
+    stdin_open: true
+    tty: true
+
+  server:
+    image: yahyakhafif/vms:v1-server
+    container_name: vms-server
+    ports:
+      - "3001:3001"
+      - "8084:8084"
+      - "8554:8554"
+
+  rtsp-to-web:
+    image: ghcr.io/deepch/rtsptoweb:latest
+    container_name: rtsp-to-web
+    ports:
+      - "8083:8083"
+    restart: unless-stopped
+    volumes:
+      - rtsp-config:/config
+
+  initializer:
+    build:
+      context: ./initialization
+    container_name: initializer
+    volumes:
+      - rtsp-config:/data
+    entrypoint: [ "/init.sh" ]
+    restart: "no"
+
+volumes:
+  - rtsp-config:
