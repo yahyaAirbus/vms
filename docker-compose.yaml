@@ -36,4 +36,4 @@ services:
     restart: "no"
 
 volumes:
-  - rtsp-config:
+  rtsp-config:
