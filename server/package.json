@@ -33,7 +33,7 @@
   },
   "scripts": {
     "dev": "nodemon server.cjs",
-    "python": "python3 /app/rtsp_server/rtsp_server.py",
+    "python": "python3 /server/rtsp_server/rtsp_server.py",
     "start": "concurrently \"npm run dev\" \"npm run python\""
   },
   "devDependencies": {
