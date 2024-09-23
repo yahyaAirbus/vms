@@ -22,13 +22,13 @@ services:
       - "8083:8083"
     restart: unless-stopped
     volumes:
-      - ./initialization/rtsp_config.json:/config/config.json
+      - ./initialization/config.json:/config/config.json
 
   initializer:
     build:
       context: ./initialization
     container_name: initializer
     volumes:
-      - ./initialization/rtsp_config.json:/data/rtsp_config.json
+      - ./initialization/config.json:/data/config.json
     entrypoint: [ "/init.sh" ]
     restart: "no"

@@ -1,2 +1,2 @@
 #!/bin/sh
-cp /config/rtsp_config.json /data/rtsp_config.json
+cp /config/config.json /data/config.json
