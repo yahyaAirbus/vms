@@ -434,7 +434,7 @@ app.post('/add-recording', upload.single('video'), async (req, res) => {
     // Define S3 upload parameters
     const params = {
         Bucket: 'airbusdemorecordings',
-        Key: videoFile.filename,  // This is the "recordingKey" we need
+        Key: videoFile.filename,
         Body: fs.createReadStream(videoFile.path),
         ContentType: 'video/mp4'
     };
