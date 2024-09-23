@@ -4,7 +4,6 @@ services:
   client:
     image: yahyakhafif/vms:v1-client
     container_name: vms-client
-    platform: linux/amd64
     ports:
       - "3000:3000"
     stdin_open: true
@@ -13,7 +12,6 @@ services:
   server:
     image: yahyakhafif/vms:v1-server
     container_name: vms-server
-    platform: linux/amd64
     ports:
       - "3001:3001"
       - "8084:8084"
@@ -22,7 +20,6 @@ services:
   rtsp-to-web:
     image: ghcr.io/deepch/rtsptoweb:latest
     container_name: rtsp-to-web
-    platform: linux/amd64
     ports:
       - "8083:8083"
     restart: unless-stopped
