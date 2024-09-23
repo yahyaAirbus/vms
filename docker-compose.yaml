@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   client:
-    image: yahyakhafif/vms:v1-client
+    image: yahyakhafif/vms:v2-client
     container_name: vms-client
     ports:
       - "3000:3000"
@@ -10,7 +10,7 @@ services:
     tty: true
 
   server:
-    image: yahyakhafif/vms:v1-server
+    image: yahyakhafif/vms:v2-server
     container_name: vms-server
     ports:
       - "3001:3001"
