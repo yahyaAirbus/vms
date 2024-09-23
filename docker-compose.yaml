@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   client:
     image: yahyakhafif/vms:v2-client
@@ -24,13 +22,13 @@ services:
       - "8083:8083"
     restart: unless-stopped
     volumes:
-      - ./initialization/rtsp-config.json:/config/config.json
+      - ./initialization/rtsp_config.json:/config/config.json
 
   initializer:
     build:
       context: ./initialization
     container_name: initializer
     volumes:
-      - ./initialization/rtsp-config.json:/data/rtsp_config.json
+      - ./initialization/rtsp_config.json:/data/rtsp_config.json
     entrypoint: [ "/init.sh" ]
     restart: "no"
