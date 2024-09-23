@@ -24,7 +24,7 @@ services:
       - "8083:8083"
     restart: unless-stopped
     volumes:
-      - ./initialization/rtsp-config.json:/config/rtsp_config.json
+      - ./initialization/rtsp-config.json:/config/config.json
 
   initializer:
     build:
