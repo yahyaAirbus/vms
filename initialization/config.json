@@ -30,7 +30,16 @@
     },
     "streams": {
         "demoStream": {
-            "name": "demo lives"
+            "name": "demo lives",
+            "channels": {
+                "1": {
+                    "name": "Elancourt CCTV",
+                    "url": "rtsp://CCTV:Agnet4Trial!@89.227.207.196:5554/videoMain",
+                    "on_demand": true,
+                    "debug": false,
+                    "status": 0
+                }
+            }
         }
     }
 }
