@@ -12,8 +12,14 @@ services:
     container_name: vms-server
     ports:
       - "3001:3001"
+
+  rtsp-server:
+    image: yahyakhafif/vms:v2-rtsp-server
+    container_name: rtsp-server
+    ports:
       - "8084:8084"
       - "8554:8554"
+    restart: unless-stopped
 
   rtsp-to-web:
     image: ghcr.io/deepch/rtsptoweb:latest
