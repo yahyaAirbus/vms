@@ -18,6 +18,7 @@ const LiveVideo = () => {
     const videoRefs = useRef({});
     const [devices, setDevices] = useState([])
     const [isError, setIsError] = useState({});
+    const vmIp = process.env.REACT_APP_VM_IP
 
     const handleError = (channelId) => {
         setIsError(prevState => ({ ...prevState, [channelId]: true }));
@@ -26,10 +27,10 @@ const LiveVideo = () => {
     useEffect(() => {
         const fetchLiveChannels = async () => {
             try {
-                const response = await axios.get('http://127.0.0.1:3001/channel');
+                const response = await axios.get(`${vmIp}:3001/channel`);
                 setLiveChannels(response.data.channels);
 
-                const nameResponse = await axios.get('http://127.0.0.1:3001/name');
+                const nameResponse = await axios.get(`${vmIp}:3001/name`);
                 const names = {};
                 nameResponse.data.names.forEach(({ channel, name }) => {
                     names[channel] = name;
@@ -50,7 +51,7 @@ const LiveVideo = () => {
             }
             const initializeHls = () => {
                 const hls = new Hls();
-                hls.loadSource(`http://127.0.0.1:8083/stream/demoStream/channel/${channel}/hls/live/index.m3u8`);
+                hls.loadSource(`${vmIp}:8083/stream/demoStream/channel/${channel}/hls/live/index.m3u8`);
                 hls.attachMedia(videoRefs.current[channel]);
                 hls.on(Hls.Events.MANIFEST_PARSED, () => {
                     setIsError(prevState => ({ ...prevState, [channel]: false }));
@@ -76,7 +77,7 @@ const LiveVideo = () => {
 
     const handleDelete = async (channel) => {
         try {
-            await axios.delete(`http://127.0.0.1:3001/device/${channel}`);
+            await axios.delete(`${vmIp}:3001/device/${channel}`);
             setDevices(devices.filter(device => device.channel !== channel));
             toast.success('Device deleted successfully');
         } catch (error) {

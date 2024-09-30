@@ -14,6 +14,7 @@ function AddDeviceForm() {
     const [endTime, setEndTime] = useState(null);
     const [timezone, setTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
     const [analyticsEnabled, setAnalyticsEnabled] = useState("No"); // State to track analytics
+    const vmIp = process.env.REACT_APP_VM_IP
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -23,7 +24,7 @@ function AddDeviceForm() {
         };
 
         try {
-            const response = await axios.post('http://127.0.0.1:3001/device', deviceData);
+            const response = await axios.post(`${vmIp}:3001/device`, deviceData);
             console.log(response.data);
 
             setChannel(response.data.channel); // Store the channel number in state
@@ -61,7 +62,7 @@ function AddDeviceForm() {
     // Function to trigger analytics
     const triggerAnalytics = async (channel, startTime, endTime, timezone) => {
         try {
-            const response = await axios.post('http://127.0.0.1:3001/rtsp-analytics', {
+            const response = await axios.post(`${vmIp}:3001/rtsp-analytics`, {
                 channel,
                 startTime,
                 endTime,

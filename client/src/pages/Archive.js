@@ -11,11 +11,13 @@ import Share from '../components/Share';
 function Archive() {
     const [recordings, setRecordings] = useState([]);
     const videoRefs = useRef({});
+    const vmIp = process.env.REACT_APP_VM_IP
+
 
     useEffect(() => {
         const fetchRecordings = async () => {
             try {
-                const response = await axios.get('http://127.0.0.1:3001/recordings');
+                const response = await axios.get(`${vmIp}:3001/recordings`);
                 setRecordings(response.data)
             } catch (error) {
                 console.error('Error fetching recordings:', error);
@@ -27,7 +29,7 @@ function Archive() {
 
     const handleDelete = async (recordingKey) => {
         try {
-            await axios.delete(`http://127.0.0.1:3001/recordings/${recordingKey}`);
+            await axios.delete(`${vmIp}:3001/recordings/${recordingKey}`);
             setRecordings(recordings.filter(recording => recording.key !== recordingKey));
             toast.success('Recording deleted successfully');
         } catch (error) {

@@ -50,7 +50,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         print(f"Received switch_stream request for channel: {channel}")
 
         if channel is not None:
-            hls_url = f"http://127.0.0.1:8083/stream/demoStream/channel/{channel}/hls/live/index.m3u8"
+            hls_url = f"http://89.227.207.196:8083/stream/demoStream/channel/{channel}/hls/live/index.m3u8"
             my_server.factory.pipeline_str = (
                 f"souphttpsrc location={hls_url} ! "
                 "hlsdemux ! "
@@ -109,7 +109,7 @@ if __name__ == '__main__':
 
     my_server = MyServer()
     my_server.set_service("8554")
-    print("RTSP server is running at rtsp://localhost:8554/stream")
+    print(f"RTSP server is running at rtsp://89.227.207.196:8554/stream")
 
     http_server = HTTPServer(('0.0.0.0', 8084), RequestHandler)
     print("HTTP server is running at http://0.0.0.0:8084")
@@ -125,6 +125,7 @@ if __name__ == '__main__':
         http_server.shutdown()
         http_server_thread.join()
         loop.quit()
+
 
 
 

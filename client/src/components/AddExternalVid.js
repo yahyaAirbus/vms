@@ -5,14 +5,13 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import VideoAnalytics from './VideoAnalytics';
 import Sidebar from './Sidebar';
-import TimeSelection from './TimeSelection';
 
 function AddExternalVid() {
     const [streamName, setStreamName] = useState('');
     const [youtubeUrl, setYoutubeUrl] = useState('');
     const [analyticsEnabled, setAnalyticsEnabled] = useState("No");
     const [channel, setChannel] = useState(null);
-
+    const vmIp = process.env.REACT_APP_VM_IP
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -22,7 +21,7 @@ function AddExternalVid() {
         };
 
         try {
-            const response = await axios.post('http://127.0.0.1:3001/youtube-to-rtsp', streamData);
+            const response = await axios.post(`${vmIp}:3001/youtube-to-rtsp`, streamData);
             console.log(response.data);
             toast.success('Stream added successfully!', {
                 position: "top-right",
@@ -56,7 +55,7 @@ function AddExternalVid() {
     };
     const triggerAnalytics = async (channel) => {
         try {
-            const response = await axios.post('http://127.0.0.1:3001/rtsp-analytics', {
+            const response = await axios.post(`${vmIp}:3001/rtsp-analytics`, {
                 channel: channel
             });
             console.log("Analytics triggered:", response.data);

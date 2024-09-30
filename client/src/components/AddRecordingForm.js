@@ -15,6 +15,7 @@ function AddRecordingForm() {
     const [endTime, setEndTime] = useState(null);
     const [timezone, setTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
     const toastId = useRef(null);
+    const vmIp = process.env.REACT_APP_VM_IP
 
     const handleFileChange = (event) => {
         setVideoFile(event.target.files[0]);
@@ -27,7 +28,7 @@ function AddRecordingForm() {
         formData.append('video', videoFile);
 
         try {
-            const response = await axios.post('http://127.0.0.1:3001/add-recording', formData, {
+            const response = await axios.post(`${vmIp}:3001/add-recording`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -76,7 +77,7 @@ function AddRecordingForm() {
 
     const triggerAnalytics = async (recordingKey, startTime, endTime, timezone) => {
         try {
-            const response = await axios.post('http://127.0.0.1:3001/recording-analytics', {
+            const response = await axios.post(`${vmIp}:3001/recording-analytics`, {
                 recordingKey: recordingKey,
                 startTime: startTime,
                 endTime: endTime,

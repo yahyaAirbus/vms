@@ -4,11 +4,12 @@ import { FaRecordVinyl, FaStop } from 'react-icons/fa';
 
 const Recording = ({ channel }) => {
     const [isRecording, setIsRecording] = useState(false);
+    const vmIp = process.env.REACT_APP_VM_IP
 
     const startRecording = async (channelId) => {
         setIsRecording(true);
         try {
-            await axios.post('http://127.0.0.1:3001/record/start', { channel: channelId });
+            await axios.post(`${vmIp}:3001/record/start`, { channel: channelId });
         } catch (error) {
             console.error('Error starting recording:', error);
         }
@@ -18,7 +19,7 @@ const Recording = ({ channel }) => {
     const stopRecording = async () => {
         setIsRecording(false);
         try {
-            await axios.post('http://127.0.0.1:3001/record/stop');
+            await axios.post(`${vmIp}:3001/record/stop`);
         } catch (error) {
             console.error('Error stopping recording:', error);
         }

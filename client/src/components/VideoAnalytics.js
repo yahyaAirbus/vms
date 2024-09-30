@@ -3,11 +3,11 @@ import Box from '@mui/material/Box';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
-import TimeSelection from './TimeSelection';
 
 function VideoAnalytics({ onAnalyticsChange }) {
     const [analyticsEnabled, setAnalyticsEnabled] = React.useState("No");
     const [timeRange, setTimeRange] = React.useState({ startTime: null, endTime: null });
+
 
     const handleAnalyticsChange = (event) => {
         const value = event.target.value;

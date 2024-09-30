@@ -18,6 +18,7 @@ AGNET_USERNAME = os.environ.get('AGNET_USERNAME')
 AGNET_PASSWORD = os.environ.get('AGNET_PASSWORD')
 AGNET_CLIENT_ID = os.environ.get('AGNET_CLIENT_ID')
 MSISDN = os.environ.get('MSISDN')
+vmIp = os.environ.get('REACT_APP_VM_IP')
 
 # Function to get token from Smartwisp
 def auth(username, password, client_secret):
@@ -109,7 +110,7 @@ def send_message(bearer_token, sender_msisdn, image):
 # function to stream the recorded video when a human is detected
 def shareRecording(video_url):
     try:
-        response = requests.post("http://127.0.0.1:8084/share-recording", json={"videoUrl": video_url})
+        response = requests.post(f'http://rtsp-server:8084/share-recording', json={"videoUrl": video_url})
         if response.status_code == 200:
             print("[INFO] Recording shared successfully")
         else:
@@ -120,7 +121,7 @@ def shareRecording(video_url):
 # function to stream the live video when a human is detected
 def shareLive(video_url):
     try:
-        response = requests.post("http://127.0.0.1:8084/switch-stream", json={"video_url": video_url})
+        response = requests.post(f'http://rtsp-server:8084/switch-stream', json={"video_url": video_url})
         if response.status_code == 200:
             print("[INFO] Live shared successfully")
         else:

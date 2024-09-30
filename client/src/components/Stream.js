@@ -4,9 +4,10 @@ import { PiShareFatFill } from "react-icons/pi";
 import 'react-toastify/dist/ReactToastify.css';
 import { toast } from 'react-toastify';
 const Stream = ({ channel }) => {
+    const vmIp = process.env.REACT_APP_VM_IP
     const handleStream = async () => {
         try {
-            const response = await axios.post('http://127.0.0.1:3001/switch_stream', { channel });
+            const response = await axios.post(`${vmIp}:3001/switch_stream`, { channel });
             console.log(`Switched to channel ${channel}:`, response.data.message);
             toast.success('successfuly streaming the video!', {
                 position: "top-right",

@@ -8,10 +8,11 @@ export const AuthProvider = ({ children }) => {
         const storedLogin = localStorage.getItem('isLoggedIn');
         return storedLogin === 'true';
     });
+    const vmIp = process.env.REACT_APP_VM_IP
 
     const login = async (email, password) => {
         try {
-            const response = await axios.post('http://127.0.0.1:3001/Login', { email, password });
+            const response = await axios.post(`${vmIp}:3001/Login`, { email, password });
 
             if (response.status === 200) {
                 setIsLoggedIn(true);
