@@ -1,7 +1,6 @@
 const express = require("express");
 const cors = require("cors");
 const app = express();
-const AWS = require("aws-sdk");
 const axios = require("axios");
 const { exec } = require('child_process');
 const { spawn } = require('child_process');
@@ -19,31 +18,31 @@ const timezoneIana = require('dayjs-timezone-iana-plugin');
 dayjs.extend(utc);
 dayjs.extend(timezoneIana);
 
-
 require('dotenv').config();
 app.use(express.json());
 app.use(cors());
 
-const vmIp = process.env.REACT_APP_VM_IP
+const vmIp = process.env.REACT_APP_VM_IP;
 
+const { S3Client, PutObjectCommand, ListObjectsV2Command, DeleteObjectCommand } = require("@aws-sdk/client-s3");
+const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
+const { DynamoDBDocumentClient, GetCommand, PutCommand, DeleteCommand, ScanCommand } = require("@aws-sdk/lib-dynamodb");
 
-//AWS credentials to access data on was
 const awsConfig = {
     region: "us-east-2",
-    accessKeyId: process.env.AWS_Access_key,
-    secretAccessKey: process.env.AWS_Secret_access_key
+    credentials: {
+        accessKeyId: process.env.AWS_Access_key,
+        secretAccessKey: process.env.AWS_Secret_access_key
+    }
 };
 
-const s3 = new AWS.S3({
-    accessKeyId: process.env.AWS_Access_key,
-    secretAccessKey: process.env.AWS_Secret_access_key,
-    region: "us-east-2"
-});
+const s3Client = new S3Client(awsConfig);
+const ddbClient = new DynamoDBClient(awsConfig);
+const docClient = DynamoDBDocumentClient.from(ddbClient);
 
-//cloudfront link to access recording in S3 bucket
 const cloudfront = 'https://d1gx8w5c0cotxv.cloudfront.net';
 
-const docClient = new AWS.DynamoDB.DocumentClient(awsConfig);
+// Configure multer for file uploads
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, 'uploads/');  // Ensure this directory exists
@@ -54,8 +53,8 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-//login endpoint
-app.post("/Login", (req, res) => {
+// Login endpoint
+app.post("/Login", async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -69,26 +68,25 @@ app.post("/Login", (req, res) => {
         }
     };
 
-    docClient.get(params, (err, data) => {
-        if (err) {
-            console.error("Error retrieving user data:", err);
-            return res.status(500).json({ message: "Error retrieving user data" });
-        } else {
-            if (!data.Item) {
-                return res.status(404).json({ message: "User not found" });
-            }
-
-            const userData = data.Item;
-            if (userData.password === password) {
-                return res.status(200).json({ message: "Login successful" });
-            } else {
-                return res.status(401).json({ message: "Invalid email or password" });
-            }
+    try {
+        const data = await docClient.send(new GetCommand(params));
+        if (!data.Item) {
+            return res.status(404).json({ message: "User not found" });
         }
-    });
+
+        const userData = data.Item;
+        if (userData.password === password) {
+            return res.status(200).json({ message: "Login successful" });
+        } else {
+            return res.status(401).json({ message: "Invalid email or password" });
+        }
+    } catch (err) {
+        console.error("Error retrieving user data:", err);
+        return res.status(500).json({ message: "Error retrieving user data" });
+    }
 });
 
-//adding devices or streams to dynamoDB
+// Adding devices or streams to DynamoDB
 app.post("/device", async (req, res) => {
     const { name, rtspUrl } = req.body;
 
@@ -102,7 +100,7 @@ app.post("/device", async (req, res) => {
             ProjectionExpression: "channel"
         };
 
-        const data = await docClient.scan(scanParams).promise();
+        const data = await docClient.send(new ScanCommand(scanParams));
         const maxChannelId = data.Items.length ? data.Items.reduce((maxId, item) => Math.max(maxId, item.channel), 0) : 0;
         const newChannelId = maxChannelId + 1;
 
@@ -114,7 +112,7 @@ app.post("/device", async (req, res) => {
                 "rtsp_url": rtspUrl
             }
         };
-        await docClient.put(putParams).promise();
+        await docClient.send(new PutCommand(putParams));
 
         const externalApiUrl = `http://demo:demo@rtsp-to-web:8083/stream/demoStream/channel/${newChannelId}/add`;
         const externalApiBody = {
@@ -138,7 +136,7 @@ app.post("/device", async (req, res) => {
     }
 });
 
-//retriving channel number from dynamoDB
+// Retrieving channel number from DynamoDB
 app.get("/channel", async (req, res) => {
     try {
         const scanParams = {
@@ -146,7 +144,7 @@ app.get("/channel", async (req, res) => {
             ProjectionExpression: "channel"
         };
 
-        const data = await docClient.scan(scanParams).promise();
+        const data = await docClient.send(new ScanCommand(scanParams));
         const liveChannels = data.Items.map(item => ({
             channel: item.channel
         }));
@@ -158,7 +156,7 @@ app.get("/channel", async (req, res) => {
     }
 });
 
-//retrieving streams names from dynamoDB
+// Retrieving streams names from DynamoDB
 app.get("/name", async (req, res) => {
     try {
         const scanParams = {
@@ -169,7 +167,7 @@ app.get("/name", async (req, res) => {
             }
         };
 
-        const data = await docClient.scan(scanParams).promise();
+        const data = await docClient.send(new ScanCommand(scanParams));
         const deviceNames = data.Items.map(item => ({
             channel: item.channel,
             name: item.name
@@ -181,7 +179,7 @@ app.get("/name", async (req, res) => {
     }
 });
 
-//delete stream
+// Delete stream
 app.delete("/device/:channel", async (req, res) => {
     const { channel } = req.params;
 
@@ -193,7 +191,7 @@ app.delete("/device/:channel", async (req, res) => {
     };
 
     try {
-        await docClient.delete(deleteParams).promise();
+        await docClient.send(new DeleteCommand(deleteParams));
 
         const externalApiUrl = `http://demo:demo@rtsp-to-web:8083/stream/demoStream/channel/${channel}/delete`;
         await axios.get(externalApiUrl);
@@ -208,8 +206,8 @@ app.delete("/device/:channel", async (req, res) => {
 let outputFilename;
 let ffmpegProcess;
 
-//record stream
-app.post("/record/start", (req, res) => {
+// Record stream
+app.post("/record/start", async (req, res) => {
     const { channel } = req.body;
     if (!channel) {
         return res.status(400).json({ message: "Channel number is required" });
@@ -232,7 +230,7 @@ app.post("/record/start", (req, res) => {
     res.status(200).json({ message: "Recording started" });
 });
 
-//stop the recording
+// Stop the recording
 app.post("/record/stop", async (req, res) => {
     if (ffmpegProcess) {
         ffmpegProcess.kill('SIGINT');
@@ -246,24 +244,27 @@ app.post("/record/stop", async (req, res) => {
     };
 
     try {
-        const uploadResult = await s3.upload(params).promise();
-        console.log('Upload successful:', uploadResult.Location);
+        const uploadCommand = new PutObjectCommand(params);
+        await s3Client.send(uploadCommand);
+        console.log('Upload successful');
+
         fs.unlinkSync(outputFilename);
-        res.status(200).json({ message: "Recording stopped and uploaded to S3", url: uploadResult.Location });
+        res.status(200).json({ message: "Recording stopped and uploaded to S3", url: `https://${params.Bucket}.s3.amazonaws.com/${params.Key}` });
     } catch (error) {
         console.error('Error uploading recording to S3:', error);
         res.status(500).json({ message: "Error uploading recording to S3" });
     }
 });
 
-//retrieve recording
+// Retrieve recordings
 app.get('/recordings', async (req, res) => {
     const params = {
         Bucket: 'airbusdemorecordings',
     };
 
     try {
-        const data = await s3.listObjectsV2(params).promise();
+        const listCommand = new ListObjectsV2Command(params);
+        const data = await s3Client.send(listCommand);
         const recordings = data.Contents.map(item => ({
             key: item.Key,
             url: `${cloudfront}/${item.Key}`
@@ -275,25 +276,25 @@ app.get('/recordings', async (req, res) => {
     }
 });
 
-//delete recording 
-app.delete('/recordings/:key', (req, res) => {
+// Delete recording 
+app.delete('/recordings/:key', async (req, res) => {
     const key = req.params.key;
     const params = {
         Bucket: 'airbusdemorecordings',
         Key: key,
     };
 
-    s3.deleteObject(params, (err, data) => {
-        if (err) {
-            console.error('Error deleting recording:', err);
-            res.status(500).send('Error deleting recording');
-        } else {
-            res.status(200).send('Recording deleted successfully');
-        }
-    });
+    try {
+        const deleteCommand = new DeleteObjectCommand(params);
+        await s3Client.send(deleteCommand);
+        res.status(200).send('Recording deleted successfully');
+    } catch (err) {
+        console.error('Error deleting recording:', err);
+        res.status(500).send('Error deleting recording');
+    }
 });
 
-//stream to rtsp server
+// Stream to RTSP server
 app.post("/switch_stream", async (req, res) => {
     const { channel } = req.body;
 
@@ -310,7 +311,7 @@ app.post("/switch_stream", async (req, res) => {
     }
 });
 
-//extreact HLS link from from a regualr youtube link
+// Extract HLS link from a regular YouTube link
 async function getHlsLinkFromYoutube(youtubeUrl) {
     try {
         const command = `yt-dlp -g ${youtubeUrl}`;
@@ -322,7 +323,7 @@ async function getHlsLinkFromYoutube(youtubeUrl) {
     }
 }
 
-//convert HLS to RTSP to stream it to rtsp server
+// Convert HLS to RTSP to stream it to RTSP server
 function hlsToRtsp(hlsUrl, name) {
     return new Promise((resolve, reject) => {
         const rtspUrl = `rtsp://rtsp-server:8554/${name}`;
@@ -361,8 +362,7 @@ function hlsToRtsp(hlsUrl, name) {
     });
 }
 
-
-//adding youtube videos to DynamoDB
+// Adding YouTube videos to DynamoDB
 app.post('/youtube-to-rtsp', async (req, res) => {
     const { youtubeUrl, name } = req.body;
 
@@ -371,12 +371,10 @@ app.post('/youtube-to-rtsp', async (req, res) => {
     }
 
     try {
-        const hlsUrlPromise = getHlsLinkFromYoutube(youtubeUrl);
-        const hlsUrl = await hlsUrlPromise;
+        const hlsUrl = await getHlsLinkFromYoutube(youtubeUrl);
         console.log(`HLS URL: ${hlsUrl}`);
 
-        const rtspUrlPromise = hlsToRtsp(hlsUrl);
-        const rtspUrl = await rtspUrlPromise;
+        const rtspUrl = await hlsToRtsp(hlsUrl, name);
         console.log(`RTSP URL: ${rtspUrl}`);
 
         const scanParams = {
@@ -384,8 +382,7 @@ app.post('/youtube-to-rtsp', async (req, res) => {
             ProjectionExpression: "channel"
         };
 
-        const dataPromise = docClient.scan(scanParams).promise();
-        const data = await dataPromise;
+        const data = await docClient.send(new ScanCommand(scanParams));
         const maxChannelId = data.Items.length ? data.Items.reduce((maxId, item) => Math.max(maxId, item.channel), 0) : 0;
         const newChannelId = maxChannelId + 1;
 
@@ -397,8 +394,7 @@ app.post('/youtube-to-rtsp', async (req, res) => {
                 "rtsp_url": rtspUrl
             }
         };
-        const putPromise = docClient.put(putParams).promise();
-        await putPromise;
+        await docClient.send(new PutCommand(putParams));
 
         const externalApiUrl = `http://demo:demo@rtsp-to-web:8083/stream/demoStream/channel/${newChannelId}/add`;
         const externalApiBody = {
@@ -410,23 +406,22 @@ app.post('/youtube-to-rtsp', async (req, res) => {
         };
 
         console.log(`Sending request to external API: ${externalApiUrl}`);
-        const axiosPromise = axios.post(externalApiUrl, externalApiBody, {
+        await axios.post(externalApiUrl, externalApiBody, {
             headers: {
                 "Content-Type": "application/json"
             }
         });
-        await axiosPromise;
 
         console.log("External API request successful");
 
         res.status(200).json({ message: "Stream added successfully", channel: newChannelId });
     } catch (err) {
         console.error("Error adding stream:", err);
-        res.status(500).json({ message: "Error adding stream", error: err });
+        res.status(500).json({ message: "Error adding stream", error: err.message });
     }
 });
 
-//add recording from local computer to S3 bucket
+// Add recording from local computer to S3 bucket
 app.post('/add-recording', upload.single('video'), async (req, res) => {
     const videoFile = req.file;
 
@@ -443,25 +438,22 @@ app.post('/add-recording', upload.single('video'), async (req, res) => {
     };
 
     try {
-        // Create an S3 upload instance with a progress callback
-        const upload = s3.upload(params);
+        // Create an S3 upload command
+        const putCommand = new PutObjectCommand(params);
 
-        // Track progress using the `httpUploadProgress` event
-        upload.on('httpUploadProgress', (progress) => {
-            const progressPercentage = Math.round((progress.loaded / progress.total) * 100);
-            console.log(`Upload Progress: ${progressPercentage}%`);
-        });
+        // AWS SDK v3 doesn't support upload progress out of the box.
+        // For progress tracking, consider using @aws-sdk/lib-storage's Upload class.
 
         // Wait for the upload to complete
-        const uploadResult = await upload.promise();
-        console.log('Upload successful:', uploadResult.Location);
+        await s3Client.send(putCommand);
+        console.log('Upload successful');
 
         // Remove the file from local storage after upload
         fs.unlinkSync(videoFile.path);
 
         res.status(200).json({
             message: 'Video uploaded to S3',
-            url: uploadResult.Location,
+            url: `https://${params.Bucket}.s3.amazonaws.com/${params.Key}`,
             recordingKey: videoFile.filename
         });
     } catch (error) {
@@ -470,14 +462,10 @@ app.post('/add-recording', upload.single('video'), async (req, res) => {
     }
 });
 
-//stream recording to rtsp server to view it on agnet
+// Stream recording to RTSP server to view it on agent
 app.post('/share-recording/:recordingKey', async (req, res) => {
     const recordingKey = req.params.recordingKey;
     try {
-        const params = {
-            Bucket: "airbusdemorecordings",
-            Key: recordingKey
-        };
         const videoUrl = `${cloudfront}/${recordingKey}`;
         await axios.post(`http://rtsp-server:8084/share-recording`, { videoUrl });
         res.status(200).json({ message: 'Video URL shared successfully', videoUrl });
@@ -489,7 +477,7 @@ app.post('/share-recording/:recordingKey', async (req, res) => {
 
 let scheduledJob = null;
 
-//endpoint to trigger the movement detection for live streams
+// Endpoint to trigger the movement detection for live streams
 app.post('/rtsp-analytics', (req, res) => {
     const { channel, startTime, endTime, timezone } = req.body;
 
@@ -507,7 +495,8 @@ app.post('/rtsp-analytics', (req, res) => {
 
         const pythonProcess = spawn('/server/venv/bin/python', [
             '/server/movement_detection/main.py',
-            '--video', `http://${vmIp}:8083/stream/demoStream/channel/${channel}/hls/live/index.m3u8`]);
+            '--video', `http://${vmIp}:8083/stream/demoStream/channel/${channel}/hls/live/index.m3u8`
+        ]);
 
         pythonProcess.stdout.on('data', (data) => {
             console.log(`stdout: ${data}`);
@@ -525,7 +514,6 @@ app.post('/rtsp-analytics', (req, res) => {
             console.log('Stopping Python script...');
             pythonProcess.kill('SIGTERM');
         }, durationInMilliseconds);
-
     }, {
         scheduled: true,
         timezone: timezone
@@ -534,7 +522,7 @@ app.post('/rtsp-analytics', (req, res) => {
     res.json({ message: `RTSP video analytics scheduled from ${start.format('HH:mm')} to ${end.format('HH:mm')} in timezone ${timezone}` });
 });
 
-//endpoint to trigger the movement detection for recordings 
+// Endpoint to trigger the movement detection for recordings 
 app.post('/recording-analytics', (req, res) => {
     const { recordingKey, startTime, endTime, timezone } = req.body;
 
@@ -569,7 +557,6 @@ app.post('/recording-analytics', (req, res) => {
             console.log('Stopping Python script...');
             pythonProcess.kill('SIGTERM');
         }, durationInMilliseconds);
-
     }, {
         scheduled: true,
         timezone: timezone
@@ -578,12 +565,11 @@ app.post('/recording-analytics', (req, res) => {
     res.json({ message: `Video analytics for recording scheduled from ${start.format('HH:mm')} to ${end.format('HH:mm')} in timezone ${timezone}` });
 });
 
-
-//testing if the server is running 
+// Testing if the server is running 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
 
 app.get('/', (req, res) => {
-    res.json('the server is working')
-})
+    res.json('the server is working');
+});
