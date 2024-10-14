@@ -6,12 +6,21 @@ services:
       - "3000:3000"
     stdin_open: true
     tty: true
+    environment:
+      - REACT_APP_VM_IP=${REACT_APP_VM_IP}
+    env_file:
+      - ./client/.env
 
   server:
     image: yahyakhafif/multiarch-vms:server-latest
     container_name: vms-server
     ports:
       - "3001:3001"
+    environment:
+      - REACT_APP_VM_IP_SERVER=${REACT_APP_VM_IP_SERVER}
+      - REACT_APP_VM_IP_V4=${REACT_APP_VM_IP_V4}
+    env_file:
+      - ./server/.env
 
   rtsp-server:
     image: yahyakhafif/multiarch-vms:rtsp-server-latest
