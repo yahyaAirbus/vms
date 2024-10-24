@@ -4,7 +4,7 @@ import { PiShareFatFill } from "react-icons/pi";
 import 'react-toastify/dist/ReactToastify.css';
 import { toast } from 'react-toastify';
 const Stream = ({ channel }) => {
-    const vmIp = process.env.REACT_APP_VM_IP
+    const vmIp = process.env.REACT_APP_VM_IP_PUBLIC
     const handleStream = async () => {
         try {
             const response = await axios.post(`${vmIp}:3001/switch_stream`, { channel });

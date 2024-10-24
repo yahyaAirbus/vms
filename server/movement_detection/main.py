@@ -17,8 +17,9 @@ load_dotenv()
 AGNET_USERNAME = os.environ.get('AGNET_USERNAME')
 AGNET_PASSWORD = os.environ.get('AGNET_PASSWORD')
 AGNET_CLIENT_ID = os.environ.get('AGNET_CLIENT_ID')
-MSISDN = os.environ.get('MSISDN')
-vmIp = os.environ.get('REACT_APP_VM_IP')
+RECIPIENT_MSISDN = os.environ.get('RECIPIENT_MSISDN')
+SENDER_MSISDN = os.environ.get('SENDER_MSISDN')
+vmIp = os.environ.get('REACT_APP_VM_IP_PUBLIC')
 
 # Function to get token from Smartwisp
 def auth(username, password, client_secret):
@@ -37,8 +38,8 @@ def auth(username, password, client_secret):
     return token
 
 # Function to send emergency alert to dispatcher
-def send_emergency_message(bearer_token, recipient_msisdn):
-    url = f'https://api.ea-1.eu-west-1.agnet.com/api/v2/subscriber/{recipient_msisdn}/message/emergency?filter=sendEmergency'
+def send_emergency_message(bearer_token, sender_msisdn):
+    url = f'https://api.ea-1.eu-west-1.agnet.com/api/v2/subscriber/{sender_msisdn}/message/emergency?filter=sendEmergency'
     headers = {
         'Authorization': f'Bearer {bearer_token}',
         'Content-Type': 'application/json'
@@ -81,7 +82,7 @@ def send_message(bearer_token, sender_msisdn, image):
     data = {
         "Message": {
             "Text": "movement detected",
-            "Recipients": [{"Msisdn": "35840123456"}],
+            "Recipients": [{"Msisdn": f'{RECIPIENT_MSISDN}'}],
             "IsGroupMessage": False,
             "Attachment": {
                 "Content": base64_image,
@@ -110,7 +111,7 @@ def send_message(bearer_token, sender_msisdn, image):
 # function to stream the recorded video when a human is detected
 def shareRecording(video_url):
     try:
-        response = requests.post(f'http://rtsp-server:8084/share-recording', json={"videoUrl": video_url})
+        response = requests.post(f'http://{vmIp}:8084/share-recording', json={"videoUrl": video_url})
         if response.status_code == 200:
             print("[INFO] Recording shared successfully")
         else:
@@ -121,7 +122,7 @@ def shareRecording(video_url):
 # function to stream the live video when a human is detected
 def shareLive(video_url):
     try:
-        response = requests.post(f'http://rtsp-server:8084/switch-stream', json={"video_url": video_url})
+        response = requests.post(f'http://{vmIp}:8084/switch-stream', json={"video_url": video_url})
         if response.status_code == 200:
             print("[INFO] Live shared successfully")
         else:
@@ -240,8 +241,8 @@ def process_frame(video_url):
                 # Save the frame as an image
                 image_path = f"detected_frame_{datetime.now().strftime('%Y%m%d%H%M%S')}.jpg"
                 cv2.imwrite(image_path, frame)
-                send_emergency_message(bearer_token, "358408346118")
-                send_message(bearer_token, "358408346118", image_path)
+                send_emergency_message(bearer_token, f'{SENDER_MSISDN}')
+                send_message(bearer_token, f'{SENDER_MSISDN}', image_path)
                
                 if video_url:
                   if video_url[-4:] == 'm3u8':

@@ -11,7 +11,7 @@ function AddExternalVid() {
     const [youtubeUrl, setYoutubeUrl] = useState('');
     const [analyticsEnabled, setAnalyticsEnabled] = useState("No");
     const [channel, setChannel] = useState(null);
-    const vmIp = process.env.REACT_APP_VM_IP
+    const vmIp = process.env.REACT_APP_VM_IP_PUBLIC
 
     const handleSubmit = async (event) => {
         event.preventDefault();

@@ -9,16 +9,19 @@ import Stream from '../components/Stream';
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
+import { ConfirmDialog } from 'primereact/confirmdialog';
 import { FaTrash } from 'react-icons/fa';
 
 const LiveVideo = () => {
     const [liveChannels, setLiveChannels] = useState([]);
     const [channelNames, setChannelNames] = useState({});
     const videoRefs = useRef({});
-    const [devices, setDevices] = useState([])
+    const [devices, setDevices] = useState([]);
     const [isError, setIsError] = useState({});
-    const vmIp = process.env.REACT_APP_VM_IP
+    const [confirmVisible, setConfirmVisible] = useState(false);
+    const [selectedChannel, setSelectedChannel] = useState(null);
+
+    const vmIp = process.env.REACT_APP_VM_IP_PUBLIC;
 
     const handleError = (channelId) => {
         setIsError(prevState => ({ ...prevState, [channelId]: true }));
@@ -82,18 +85,19 @@ const LiveVideo = () => {
             toast.success('Device deleted successfully');
         } catch (error) {
             console.error('Error deleting device:', error);
+            toast.error('Failed to delete the device');
         }
     };
 
+
     const confirmDelete = (channel) => {
-        confirmDialog({
-            message: 'Are you sure you want to delete this device?',
-            header: 'Confirmation',
-            icon: 'pi pi-exclamation-triangle',
-            accept: () => handleDelete(channel),
-            reject: () => toast.info('Deletion cancelled'),
-            className: 'custom-confirm-dialog'
-        });
+        setSelectedChannel(channel);
+        setConfirmVisible(true);
+    };
+
+    const acceptDelete = () => {
+        handleDelete(selectedChannel);
+        setConfirmVisible(false);
     };
 
     return (
@@ -103,7 +107,7 @@ const LiveVideo = () => {
                 <div className="live-content">
                     {liveChannels.map(({ channel }) => (
                         <div key={channel} className="video-section">
-                            <div className="video-container" >
+                            <div className="video-container">
                                 <video
                                     id="liveVideo"
                                     ref={el => videoRefs.current[channel] = el}
@@ -118,15 +122,24 @@ const LiveVideo = () => {
                                 <Recording channel={channel} />
                                 <Stream channel={channel} />
                                 <FaTrash size={24} onClick={() => confirmDelete(channel)} className="delete-icon" />
-                                <ToastContainer />
-                                <ConfirmDialog />
                             </div>
                         </div>
                     ))}
                 </div>
+                <ConfirmDialog
+                    className="custom-confirm-dialog"
+                    visible={confirmVisible}
+                    onHide={() => setConfirmVisible(false)}
+                    message="Are you sure you want to delete this device?"
+                    header="Confirmation"
+                    icon="pi pi-exclamation-triangle"
+                    accept={acceptDelete}
+                    reject={() => toast.info('Deletion cancelled')}
+                />
             </div>
+            <ToastContainer />
         </>
     );
-};
+}
 
 export default LiveVideo;

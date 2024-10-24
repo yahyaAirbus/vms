@@ -14,7 +14,7 @@ function AddDeviceForm() {
     const [endTime, setEndTime] = useState(null);
     const [timezone, setTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
     const [analyticsEnabled, setAnalyticsEnabled] = useState("No"); // State to track analytics
-    const vmIp = process.env.REACT_APP_VM_IP
+    const vmIp = process.env.REACT_APP_VM_IP_PUBLIC
 
     const handleSubmit = async (event) => {
         event.preventDefault();

@@ -5,7 +5,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { toast } from 'react-toastify';
 
 const Share = ({ recording_key }) => {
-    const vmIp = process.env.REACT_APP_VM_IP
+    const vmIp = process.env.REACT_APP_VM_IP_PUBLIC
     const handleShare = async () => {
         try {
             const videourl = await axios.post(`${vmIp}:3001/share-recording/${recording_key}`)

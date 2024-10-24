@@ -4,7 +4,6 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /server
 
-# Install system dependencies
 RUN apt-get update -y && \
     apt-get upgrade -y && \
     apt-get install -y wget build-essential checkinstall software-properties-common \
@@ -17,27 +16,21 @@ RUN apt-get update -y && \
     rm -rf /var/lib/apt/lists/*
 
 
-# Install Node.js and npm
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
     apt-get install -y nodejs && \
     node -v && npm -v
 
-# Set up Python virtual environment and install dependencies
 RUN python3.10 -m venv venv
 COPY movement_detection/requirements-detection.txt .
 RUN ./venv/bin/pip install --upgrade pip && \
     ./venv/bin/pip install -r requirements-detection.txt
 
-# Copy package.json and package-lock.json
 COPY package*.json .
 
-# Install Node.js dependencies
-RUN npm install
+RUN npm install 
 
-# Copy application files
 COPY . .
 
-# Expose required ports
 EXPOSE 3001
 
 CMD ["npm", "run", "dev"]

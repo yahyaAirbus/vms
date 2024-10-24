@@ -7,8 +7,10 @@
     "@emailjs/browser": "^4.3.3",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
-    "@mui/material": "^5.15.18",
-    "@mui/x-date-pickers": "^7.12.1",
+    "@eslint/config-array": "^0.18.0",
+    "@mui/material": "^6.1.3",
+    "@mui/system": "^6.1.3",
+    "@mui/x-date-pickers": "^7.20.0",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
@@ -38,6 +40,7 @@
     "react-toastify": "^10.0.5",
     "sockjs": "^0.3.24",
     "stompjs": "^2.3.3",
+    "svgo": "^3.3.2",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
@@ -64,5 +67,12 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@babel/plugin-transform-class-properties": "^7.25.7",
+    "@babel/plugin-transform-private-property-in-object": "^7.25.8",
+    "eslint": "^8.0.0",
+    "eslint-config-react-app": "^7.0.1"
   }
 }

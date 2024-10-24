@@ -15,7 +15,7 @@ function AddRecordingForm() {
     const [endTime, setEndTime] = useState(null);
     const [timezone, setTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
     const toastId = useRef(null);
-    const vmIp = process.env.REACT_APP_VM_IP
+    const vmIp = process.env.REACT_APP_VM_IP_PUBLIC
 
     const handleFileChange = (event) => {
         setVideoFile(event.target.files[0]);

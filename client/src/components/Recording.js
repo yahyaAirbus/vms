@@ -4,7 +4,7 @@ import { FaRecordVinyl, FaStop } from 'react-icons/fa';
 
 const Recording = ({ channel }) => {
     const [isRecording, setIsRecording] = useState(false);
-    const vmIp = process.env.REACT_APP_VM_IP
+    const vmIp = process.env.REACT_APP_VM_IP_PUBLIC
 
     const startRecording = async (channelId) => {
         setIsRecording(true);

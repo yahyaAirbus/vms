@@ -11,7 +11,7 @@ import Share from '../components/Share';
 function Archive() {
     const [recordings, setRecordings] = useState([]);
     const videoRefs = useRef({});
-    const vmIp = process.env.REACT_APP_VM_IP
+    const vmIp = process.env.REACT_APP_VM_IP_PUBLIC
 
 
     useEffect(() => {

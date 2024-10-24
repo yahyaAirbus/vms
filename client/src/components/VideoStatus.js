@@ -3,7 +3,7 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { MdCheckCircle, MdCancel } from "react-icons/md";
 import axios from 'axios';
 
-const vmIp = process.env.REACT_APP_VM_IP
+const vmIp = process.env.REACT_APP_VM_IP_PUBLIC
 const HLS_MANIFEST_URL_BASE = `${vmIp}:8083/stream/demoStream/channel`;
 
 const VideoStatus = ({ channelId }) => {

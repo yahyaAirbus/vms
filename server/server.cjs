@@ -22,11 +22,13 @@ require('dotenv').config();
 app.use(express.json());
 app.use(cors());
 
-const vmIp = process.env.REACT_APP_VM_IP;
+const publicVmIp = process.env.REACT_APP_VM_IP_PUBLIC;
+const privateVmIp = process.env.REACT_APP_VM_IP_PRIVATE;
 
 const { S3Client, PutObjectCommand, ListObjectsV2Command, DeleteObjectCommand } = require("@aws-sdk/client-s3");
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, GetCommand, PutCommand, DeleteCommand, ScanCommand } = require("@aws-sdk/lib-dynamodb");
+const { default: ffmpeg } = require("ffmpeg");
 
 const awsConfig = {
     region: "us-east-2",
@@ -213,7 +215,7 @@ app.post("/record/start", async (req, res) => {
         return res.status(400).json({ message: "Channel number is required" });
     }
 
-    const m3u8Url = `http://${vmIp}:8083/stream/demoStream/channel/${channel}/hls/live/index.m3u8`;
+    const m3u8Url = `http://${publicVmIp}:8083/stream/demoStream/channel/${channel}/hls/live/index.m3u8`;
 
     const recordingId = uuidv4();
     outputFilename = `recording_${recordingId}.mp4`;
@@ -303,7 +305,7 @@ app.post("/switch_stream", async (req, res) => {
     }
 
     try {
-        await axios.post(`http://rtsp-server:8084/switch_stream`, { channel });
+        await axios.post(`http://${privateVmIp}:8084/switch_stream`, { channel });
         res.status(200).json({ message: `Switched to channel ${channel}` });
     } catch (error) {
         console.error('Error switching stream:', error);
@@ -326,7 +328,7 @@ async function getHlsLinkFromYoutube(youtubeUrl) {
 // Convert HLS to RTSP to stream it to RTSP server
 function hlsToRtsp(hlsUrl, name) {
     return new Promise((resolve, reject) => {
-        const rtspUrl = `rtsp://rtsp-server:8554/${name}`;
+        const rtspUrl = `rtsp://${privateVmIp}:8554/${name}`;
         const vlcArgs = [
             hlsUrl,
             '--sout', `#transcode{vcodec=h264,vb=15000,acodec=none}:rtp{sdp=${rtspUrl}}`,
@@ -429,7 +431,6 @@ app.post('/add-recording', upload.single('video'), async (req, res) => {
         return res.status(400).json({ message: 'No video file uploaded' });
     }
 
-    // Define S3 upload parameters
     const params = {
         Bucket: 'airbusdemorecordings',
         Key: videoFile.filename,
@@ -438,17 +439,9 @@ app.post('/add-recording', upload.single('video'), async (req, res) => {
     };
 
     try {
-        // Create an S3 upload command
         const putCommand = new PutObjectCommand(params);
-
-        // AWS SDK v3 doesn't support upload progress out of the box.
-        // For progress tracking, consider using @aws-sdk/lib-storage's Upload class.
-
-        // Wait for the upload to complete
         await s3Client.send(putCommand);
         console.log('Upload successful');
-
-        // Remove the file from local storage after upload
         fs.unlinkSync(videoFile.path);
 
         res.status(200).json({
@@ -467,7 +460,7 @@ app.post('/share-recording/:recordingKey', async (req, res) => {
     const recordingKey = req.params.recordingKey;
     try {
         const videoUrl = `${cloudfront}/${recordingKey}`;
-        await axios.post(`http://rtsp-server:8084/share-recording`, { videoUrl });
+        await axios.post(`http://${privateVmIp}:8084/share-recording`, { videoUrl });
         res.status(200).json({ message: 'Video URL shared successfully', videoUrl });
     } catch (error) {
         console.error('Error sharing recording:', error.message);
@@ -495,7 +488,7 @@ app.post('/rtsp-analytics', (req, res) => {
 
         const pythonProcess = spawn('/server/venv/bin/python', [
             '/server/movement_detection/main.py',
-            '--video', `http://${vmIp}:8083/stream/demoStream/channel/${channel}/hls/live/index.m3u8`
+            '--video', `http://${publicVmIp}:8083/stream/demoStream/channel/${channel}/hls/live/index.m3u8`
         ]);
 
         pythonProcess.stdout.on('data', (data) => {
@@ -525,13 +518,10 @@ app.post('/rtsp-analytics', (req, res) => {
 // Endpoint to trigger the movement detection for recordings 
 app.post('/recording-analytics', (req, res) => {
     const { recordingKey, startTime, endTime, timezone } = req.body;
-
-    // Parse startTime and endTime if they are strings, and convert them to the user's timezone
     const start = dayjs(startTime).tz(timezone);
     const end = dayjs(endTime).tz(timezone);
-
-    // Calculate the duration in milliseconds
     const durationInMilliseconds = end.diff(start);
+
     scheduledJob = cron.schedule(`${start.minute()} ${start.hour()} * * *`, () => {
         console.log('Starting Python script for recorded video...');
 
@@ -564,6 +554,7 @@ app.post('/recording-analytics', (req, res) => {
 
     res.json({ message: `Video analytics for recording scheduled from ${start.format('HH:mm')} to ${end.format('HH:mm')} in timezone ${timezone}` });
 });
+
 
 // Testing if the server is running 
 app.listen(PORT, () => {

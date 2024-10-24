@@ -7,7 +7,7 @@ import { NavLink } from 'react-router-dom';
 function Home() {
     const [activeLink, setActiveLink] = useState('Home');
     const [data, setData] = useState(null);
-    const vmIp = process.env.REACT_APP_VM_IP
+    const vmIp = process.env.REACT_APP_VM_IP_PUBLIC
 
     const handleLinkClick = async (link) => {
         setActiveLink(link);

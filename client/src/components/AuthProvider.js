@@ -8,7 +8,7 @@ export const AuthProvider = ({ children }) => {
         const storedLogin = localStorage.getItem('isLoggedIn');
         return storedLogin === 'true';
     });
-    const vmIp = process.env.REACT_APP_VM_IP
+    const vmIp = process.env.REACT_APP_VM_IP_PUBLIC
 
     const login = async (email, password) => {
         try {
