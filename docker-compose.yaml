@@ -6,29 +6,24 @@ services:
       - "3000:3000"
     stdin_open: true
     tty: true
-    environment:
-      - REACT_APP_VM_IP=${REACT_APP_VM_IP}
     env_file:
-      - ./client/.env
+      - ./global.env
 
   server:
     image: yahyakhafif/multiarch-vms:server-latest
     container_name: vms-server
     ports:
       - "3001:3001"
-    environment:
-      - REACT_APP_VM_IP_SERVER=${REACT_APP_VM_IP_SERVER}
-      - REACT_APP_VM_IP_V4=${REACT_APP_VM_IP_V4}
     env_file:
-      - ./server/.env
+      - ./global.env
 
-  rtsp-server:
-    image: yahyakhafif/multiarch-vms:rtsp-server-latest
-    container_name: rtsp-server
-    ports:
-      - "8084:8084"
-      - "8554:8554"
-    restart: unless-stopped
+  #  rtsp-server:
+  #    image: yahyakhafif/multiarch-vms:rtsp-server-latest
+  #   container_name: rtsp-server
+  #   ports:
+  #      - "8084:8084"
+  #      - "8554:8554"
+  #   restart: unless-stopped
 
   rtsp-to-web:
     image: ghcr.io/deepch/rtsptoweb:latest
