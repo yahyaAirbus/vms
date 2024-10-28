@@ -29,6 +29,7 @@ const { S3Client, PutObjectCommand, ListObjectsV2Command, DeleteObjectCommand } 
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, GetCommand, PutCommand, DeleteCommand, ScanCommand } = require("@aws-sdk/lib-dynamodb");
 const { default: ffmpeg } = require("ffmpeg");
+const { url } = require("inspector");
 
 const awsConfig = {
     region: "us-east-2",
@@ -556,11 +557,38 @@ app.post('/recording-analytics', (req, res) => {
 });
 
 
-// Testing if the server is running 
+app.post('/multiple-streams', async (req, res) => {
+    const channels = req.body
+
+    if (!channels) {
+        return res.status(400).json({ message: "Channels number is required" });
+    }
+    try {
+        await axios.post(`http://${privateVmIp}:8084/multiple-streams`, { channels })
+        res.status(200).json({ message: `streamed the following channels ${channels}` });
+    }
+    catch (error) {
+        console.error('Error sharing stream:', error);
+        res.status(500).json({ message: "Error streaming multiple live videos" });
+    }
+})
+
+app.post('/multiple-recodings', async (req, res) => {
+    const recodingKeys = req.body
+
+    if (!recodingKeys) {
+        return res.status(400).json({ message: "recording keys are required" });
+    }
+    try {
+        await axios.post(`http://${privateVmIp}:8084/multiple-streams`, { channels })
+        res.status(200).json({ message: `streamed the following recordings ${recodingKeys}` })
+    }
+    catch (error) {
+        console.error('Error sharing recording', error);
+        res.status(500).json({ message: 'Error streaming multiple recodings' })
+    }
+})
+
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
-});
-
-app.get('/', (req, res) => {
-    res.json('the server is working');
 });
