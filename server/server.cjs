@@ -558,29 +558,31 @@ app.post('/recording-analytics', (req, res) => {
 
 
 app.post('/multiple-streams', async (req, res) => {
-    const channels = req.body
+    const { channels } = req.body;
 
-    if (!channels) {
-        return res.status(400).json({ message: "Channels number is required" });
+    if (!channels || !Array.isArray(channels) || channels.length === 0) {
+        return res.status(400).json({ message: "An array of channel numbers is required" });
     }
     try {
-        await axios.post(`http://${privateVmIp}:8084/multiple-streams`, { channels })
-        res.status(200).json({ message: `streamed the following channels ${channels}` });
+        await axios.post(`http://${privateVmIp}:8084/multiple-streams`, { channels }, {
+            headers: { 'Content-Type': 'application/json' }
+        });
+        res.status(200).json({ message: `Streaming the following channels: ${channels.join(", ")}` });
     }
     catch (error) {
         console.error('Error sharing stream:', error);
         res.status(500).json({ message: "Error streaming multiple live videos" });
     }
-})
+});
+
 
 app.post('/multiple-recodings', async (req, res) => {
     const recodingKeys = req.body
-
     if (!recodingKeys) {
         return res.status(400).json({ message: "recording keys are required" });
     }
     try {
-        await axios.post(`http://${privateVmIp}:8084/multiple-streams`, { channels })
+        await axios.post(`http://${privateVmIp}:8084/multiple-recordings/:`, { channels })
         res.status(200).json({ message: `streamed the following recordings ${recodingKeys}` })
     }
     catch (error) {

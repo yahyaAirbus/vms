@@ -20,6 +20,7 @@ const LiveVideo = () => {
     const [isError, setIsError] = useState({});
     const [confirmVisible, setConfirmVisible] = useState(false);
     const [selectedChannel, setSelectedChannel] = useState(null);
+    const [selectedChannels, setSelectedChannels] = useState([])
 
     const vmIp = process.env.REACT_APP_VM_IP_PUBLIC;
 
@@ -33,7 +34,7 @@ const LiveVideo = () => {
                 const response = await axios.get(`${vmIp}:3001/channel`);
                 setLiveChannels(response.data.channels);
 
-                const nameResponse = await axios.get(`${vmIp}:3001/name`);
+                const nameResponse = await axios.get(`${vmIp}: 3001/name`);
                 const names = {};
                 nameResponse.data.names.forEach(({ channel, name }) => {
                     names[channel] = name;
@@ -100,6 +101,11 @@ const LiveVideo = () => {
         setConfirmVisible(false);
     };
 
+    const handleSelectedChannels = (channel) => {
+        let channelArray = []
+        channelArray = selectedChannel(channel)
+    }
+
     return (
         <>
             <Sidebar />
@@ -122,6 +128,10 @@ const LiveVideo = () => {
                                 <Recording channel={channel} />
                                 <Stream channel={channel} />
                                 <FaTrash size={24} onClick={() => confirmDelete(channel)} className="delete-icon" />
+                                <input
+                                    type='checkbox'
+
+                                />
                             </div>
                         </div>
                     ))}

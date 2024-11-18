@@ -3,6 +3,10 @@ import axios from 'axios';
 import { PiShareFatFill } from "react-icons/pi";
 import 'react-toastify/dist/ReactToastify.css';
 import { toast } from 'react-toastify';
+import Button from 'react-bootstrap/Button';
+import ButtonGroup from 'react-bootstrap/ButtonGroup';
+import Dropdown from 'react-bootstrap/Dropdown';
+
 
 const Share = ({ recording_key }) => {
     const vmIp = process.env.REACT_APP_VM_IP_PUBLIC
@@ -35,10 +39,16 @@ const Share = ({ recording_key }) => {
     };
     return (
         <div className="button-container">
-            <button className="share" onClick={handleShare}>
-                <PiShareFatFill className="share-icon" />
-                Share
-            </button>
+
+            <Dropdown as={ButtonGroup}>
+                <Button variant="success" className="share" onClick={handleShare}><PiShareFatFill className="share-icon" />Share</Button>
+                <Dropdown.Toggle split variant="success" id="dropdown-split-basic" className="share" />
+                <Dropdown.Menu>
+                    <Dropdown.Item onClick={handleShare} className="share">Share multiple streams</Dropdown.Item>
+                </Dropdown.Menu>
+
+            </Dropdown>
+
         </div>
     );
 };
