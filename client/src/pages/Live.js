@@ -11,6 +11,8 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ConfirmDialog } from 'primereact/confirmdialog';
 import { FaTrash } from 'react-icons/fa';
+import Checkbox from '@mui/material/Checkbox';
+
 
 const LiveVideo = () => {
     const [liveChannels, setLiveChannels] = useState([]);
@@ -21,6 +23,7 @@ const LiveVideo = () => {
     const [confirmVisible, setConfirmVisible] = useState(false);
     const [selectedChannel, setSelectedChannel] = useState(null);
     const [selectedChannels, setSelectedChannels] = useState([])
+    const label = { inputProps: { 'aria-label': 'Checkbox demo' } };
 
     const vmIp = process.env.REACT_APP_VM_IP_PUBLIC;
 
@@ -114,25 +117,33 @@ const LiveVideo = () => {
                     {liveChannels.map(({ channel }) => (
                         <div key={channel} className="video-section">
                             <div className="video-container">
+
                                 <video
                                     id="liveVideo"
                                     ref={el => videoRefs.current[channel] = el}
                                     controls
                                     muted
                                     onError={() => handleError(channel)}
-                                ></video>
+                                >
+                                </video>
                             </div>
+
                             <div className="video-info">
                                 <h3>{channelNames[channel]}</h3>
                                 <VideoStatus channelId={channel} />
                                 <Recording channel={channel} />
                                 <Stream channel={channel} />
-                                <FaTrash size={24} onClick={() => confirmDelete(channel)} className="delete-icon" />
-                                <input
-                                    type='checkbox'
-
+                                <div className='check-box' >
+                                    <Checkbox {...label} channel={channel} />
+                                </div>
+                                <FaTrash
+                                    size={24}
+                                    onClick={() => confirmDelete(channel)}
+                                    className="delete-icon"
                                 />
                             </div>
+
+
                         </div>
                     ))}
                 </div>
@@ -147,6 +158,7 @@ const LiveVideo = () => {
                     reject={() => toast.info('Deletion cancelled')}
                 />
             </div>
+
             <ToastContainer />
         </>
     );

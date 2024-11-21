@@ -491,3 +491,10 @@ input {
 .custom-confirm-dialog .p-icon {
     color: #ffffff;
 }
+
+
+.check-box {
+    position: absolute;
+    margin-top: 2%;
+    right: 10px;
+}
