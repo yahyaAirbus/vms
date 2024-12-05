@@ -117,7 +117,7 @@ app.post("/device", async (req, res) => {
         };
         await docClient.send(new PutCommand(putParams));
 
-        const externalApiUrl = `http://demo:demo@rtsp-to-web:8083/stream/demoStream/channel/${newChannelId}/add`;
+        const externalApiUrl = `http://demo:demo@3.85.223.89:8083/stream/demoStream/channel/${newChannelId}/add`;
         const externalApiBody = {
             name: name,
             url: rtspUrl,
@@ -196,7 +196,7 @@ app.delete("/device/:channel", async (req, res) => {
     try {
         await docClient.send(new DeleteCommand(deleteParams));
 
-        const externalApiUrl = `http://demo:demo@rtsp-to-web:8083/stream/demoStream/channel/${channel}/delete`;
+        const externalApiUrl = `http://demo:demo@3.85.223.89:8083/stream/demoStream/channel/${channel}/delete`;
         await axios.get(externalApiUrl);
 
         res.status(200).json({ message: "Device deleted successfully" });
@@ -399,7 +399,7 @@ app.post('/youtube-to-rtsp', async (req, res) => {
         };
         await docClient.send(new PutCommand(putParams));
 
-        const externalApiUrl = `http://demo:demo@rtsp-to-web:8083/stream/demoStream/channel/${newChannelId}/add`;
+        const externalApiUrl = `http://demo:demo@3.85.223.89:8083/stream/demoStream/channel/${newChannelId}/add`;
         const externalApiBody = {
             name: name,
             url: rtspUrl,
@@ -559,7 +559,6 @@ app.post('/recording-analytics', (req, res) => {
 
 app.post('/multiple-streams', async (req, res) => {
     const { channels } = req.body;
-
     if (!channels || !Array.isArray(channels) || channels.length === 0) {
         return res.status(400).json({ message: "An array of channel numbers is required" });
     }
@@ -573,6 +572,7 @@ app.post('/multiple-streams', async (req, res) => {
         console.error('Error sharing stream:', error);
         res.status(500).json({ message: "Error streaming multiple live videos" });
     }
+    console.log('the channels selected are: ', channels)
 });
 
 

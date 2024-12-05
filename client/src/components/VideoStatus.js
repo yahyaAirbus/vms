@@ -4,7 +4,7 @@ import { MdCheckCircle, MdCancel } from "react-icons/md";
 import axios from 'axios';
 
 const vmIp = process.env.REACT_APP_VM_IP_PUBLIC
-const HLS_MANIFEST_URL_BASE = `${vmIp}:8083/stream/demoStream/channel`;
+const HLS_MANIFEST_URL_BASE = `http://3.85.223.89:8083/stream/demoStream/channel`;
 
 const VideoStatus = ({ channelId }) => {
     const [status, setStatus] = useState({

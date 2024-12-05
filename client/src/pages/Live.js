@@ -37,7 +37,7 @@ const LiveVideo = () => {
                 const response = await axios.get(`${vmIp}:3001/channel`);
                 setLiveChannels(response.data.channels);
 
-                const nameResponse = await axios.get(`${vmIp}: 3001/name`);
+                const nameResponse = await axios.get(`${vmIp}:3001/name`);
                 const names = {};
                 nameResponse.data.names.forEach(({ channel, name }) => {
                     names[channel] = name;
@@ -58,7 +58,7 @@ const LiveVideo = () => {
             }
             const initializeHls = () => {
                 const hls = new Hls();
-                hls.loadSource(`${vmIp}:8083/stream/demoStream/channel/${channel}/hls/live/index.m3u8`);
+                hls.loadSource(`http://3.85.223.89:8083/stream/demoStream/channel/${channel}/hls/live/index.m3u8`);
                 hls.attachMedia(videoRefs.current[channel]);
                 hls.on(Hls.Events.MANIFEST_PARSED, () => {
                     setIsError(prevState => ({ ...prevState, [channel]: false }));
@@ -84,7 +84,7 @@ const LiveVideo = () => {
 
     const handleDelete = async (channel) => {
         try {
-            await axios.delete(`${vmIp}:3001/device/${channel}`);
+            await axios.delete(`http://127.0.0.1:3001/device/${channel}`);
             setDevices(devices.filter(device => device.channel !== channel));
             toast.success('Device deleted successfully');
         } catch (error) {
@@ -105,9 +105,13 @@ const LiveVideo = () => {
     };
 
     const handleSelectedChannels = (channel) => {
-        let channelArray = []
-        channelArray = selectedChannel(channel)
-    }
+        setSelectedChannels(prevSelected =>
+            prevSelected.includes(channel)
+                ? prevSelected.filter(c => c !== channel)
+                : [...prevSelected, channel]
+        );
+    };
+
 
     return (
         <>
@@ -132,9 +136,15 @@ const LiveVideo = () => {
                                 <h3>{channelNames[channel]}</h3>
                                 <VideoStatus channelId={channel} />
                                 <Recording channel={channel} />
-                                <Stream channel={channel} />
+                                <Stream channel={channel} selectedChannels={selectedChannels} />
+
                                 <div className='check-box' >
-                                    <Checkbox {...label} channel={channel} />
+                                    <Checkbox
+                                        {...label}
+                                        checked={selectedChannels.includes(channel)}
+                                        onChange={() => handleSelectedChannels(channel)}
+                                    />
+
                                 </div>
                                 <FaTrash
                                     size={24}
