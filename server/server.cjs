@@ -117,7 +117,7 @@ app.post("/device", async (req, res) => {
         };
         await docClient.send(new PutCommand(putParams));
 
-        const externalApiUrl = `http://demo:demo@3.85.223.89:8083/stream/demoStream/channel/${newChannelId}/add`;
+        const externalApiUrl = `http://demo:demo@23.20.56.240:8083/stream/demoStream/channel/${newChannelId}/add`;
         const externalApiBody = {
             name: name,
             url: rtspUrl,
@@ -196,7 +196,7 @@ app.delete("/device/:channel", async (req, res) => {
     try {
         await docClient.send(new DeleteCommand(deleteParams));
 
-        const externalApiUrl = `http://demo:demo@3.85.223.89:8083/stream/demoStream/channel/${channel}/delete`;
+        const externalApiUrl = `http://demo:demo@23.20.56.240:8083/stream/demoStream/channel/${channel}/delete`;
         await axios.get(externalApiUrl);
 
         res.status(200).json({ message: "Device deleted successfully" });
@@ -306,7 +306,7 @@ app.post("/switch_stream", async (req, res) => {
     }
 
     try {
-        await axios.post(`http://${privateVmIp}:8084/switch_stream`, { channel });
+        await axios.post(`http://${privateVmIp}:8084/switch-stream`, { channel });
         res.status(200).json({ message: `Switched to channel ${channel}` });
     } catch (error) {
         console.error('Error switching stream:', error);
@@ -399,7 +399,7 @@ app.post('/youtube-to-rtsp', async (req, res) => {
         };
         await docClient.send(new PutCommand(putParams));
 
-        const externalApiUrl = `http://demo:demo@3.85.223.89:8083/stream/demoStream/channel/${newChannelId}/add`;
+        const externalApiUrl = `http://demo:demo@23.20.56.240:8083/stream/demoStream/channel/${newChannelId}/add`;
         const externalApiBody = {
             name: name,
             url: rtspUrl,
@@ -576,20 +576,21 @@ app.post('/multiple-streams', async (req, res) => {
 });
 
 
-app.post('/multiple-recodings', async (req, res) => {
-    const recodingKeys = req.body
-    if (!recodingKeys) {
-        return res.status(400).json({ message: "recording keys are required" });
+app.post('/multiple-recordings', async (req, res) => {
+    const { recording_key } = req.body;
+    console.log('the recording keys are:', recording_key)
+    if (!recording_key || !Array.isArray(recording_key) || recording_key.length === 0) {
+        return res.status(400).json({ message: "Recording keys are required" });
     }
     try {
-        await axios.post(`http://${privateVmIp}:8084/multiple-recordings/:`, { channels })
-        res.status(200).json({ message: `streamed the following recordings ${recodingKeys}` })
+        await axios.post(`http://${privateVmIp}:8084/multiple-recordings`, { recording_key });
+        res.status(200).json({ message: `Shared the following recordings: ${recording_key.join(", ")}` });
+    } catch (error) {
+        console.error('Error sharing recordings:', error);
+        res.status(500).json({ message: 'Error sharing multiple recordings' });
     }
-    catch (error) {
-        console.error('Error sharing recording', error);
-        res.status(500).json({ message: 'Error streaming multiple recodings' })
-    }
-})
+});
+
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

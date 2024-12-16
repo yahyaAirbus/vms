@@ -24,15 +24,13 @@ vmIp = os.environ.get('REACT_APP_VM_IP_PUBLIC')
 # Function to get token from Smartwisp
 def auth(username, password, client_secret):
     print("[INFO] Authenticating with Smartwisp...")
-    url = "https://openid-keycloak-test.tactilon-smartwisp.com/auth/realms/master/protocol/openid-connect/token"
+    url = "https://keycloak.ea-1.eu-west-1.agnet.com/auth/realms/agnet-api/protocol/openid-connect/token"
     data = {
-        'username': username,
-        'password': password,
-        'grant_type': 'password',
+        "grant_type": "client_credentials",
         'client_id': 'kong',
         'client_secret': client_secret,
     }
-    response = requests.post(url, data=data, headers={'Content-Type': 'application/x-www-form-urlencoded'})
+    response = requests.post(url, data=data, headers={'content-type: application/x-www-form-urlencoded'})
     token = json.loads(response.text)['access_token']
     print("[INFO] Authentication successful")
     return token
