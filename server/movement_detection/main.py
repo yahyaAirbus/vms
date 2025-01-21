@@ -14,21 +14,20 @@ from io import BytesIO
 load_dotenv()
 
 # Environment variables to get Smartwisp token
-AGNET_USERNAME = os.environ.get('AGNET_USERNAME')
-AGNET_PASSWORD = os.environ.get('AGNET_PASSWORD')
 AGNET_CLIENT_ID = os.environ.get('AGNET_CLIENT_ID')
+AGNET_CLIENT_SECRET = os.environ.get('AGNET_CLIENT_SECRET')
 RECIPIENT_MSISDN = os.environ.get('RECIPIENT_MSISDN')
 SENDER_MSISDN = os.environ.get('SENDER_MSISDN')
 vmIp = os.environ.get('REACT_APP_VM_IP_PUBLIC')
 
 # Function to get token from Smartwisp
-def auth(username, password, client_secret):
+def auth(client_id, client_secret):
     print("[INFO] Authenticating with Smartwisp...")
     url = "https://keycloak.ea-1.eu-west-1.agnet.com/auth/realms/agnet-api/protocol/openid-connect/token"
     data = {
         "grant_type": "client_credentials",
-        'client_id': 'kong',
-        'client_secret': client_secret,
+        "client_id": client_id,
+        "client_secret": client_secret,
     }
     response = requests.post(url, data=data, headers={'content-type: application/x-www-form-urlencoded'})
     token = json.loads(response.text)['access_token']
@@ -179,7 +178,7 @@ def process_frame(video_url):
     print(f"[INFO] Processing video: {video_url}")
     vs = getFrame(video_url, None)
     
-    bearer_token = auth(AGNET_USERNAME, AGNET_PASSWORD, AGNET_CLIENT_ID)
+    bearer_token = auth(AGNET_CLIENT_ID, AGNET_CLIENT_SECRET)
     
     while True:
         notToSkip = totalFrames % args["skip_frames"] == 0

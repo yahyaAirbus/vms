@@ -58,7 +58,7 @@ const LiveVideo = () => {
             }
             const initializeHls = () => {
                 const hls = new Hls();
-                hls.loadSource(`http://3.85.223.89:8083/stream/demoStream/channel/${channel}/hls/live/index.m3u8`);
+                hls.loadSource(`${vmIp}:8083/stream/demoStream/channel/${channel}/hls/live/index.m3u8`);
                 hls.attachMedia(videoRefs.current[channel]);
                 hls.on(Hls.Events.MANIFEST_PARSED, () => {
                     setIsError(prevState => ({ ...prevState, [channel]: false }));

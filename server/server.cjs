@@ -48,7 +48,7 @@ const cloudfront = 'https://d1gx8w5c0cotxv.cloudfront.net';
 // Configure multer for file uploads
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'uploads/');  // Ensure this directory exists
+        cb(null, 'uploads/');
     },
     filename: (req, file, cb) => {
         cb(null, `${Date.now()}_${file.originalname}`);
@@ -117,7 +117,7 @@ app.post("/device", async (req, res) => {
         };
         await docClient.send(new PutCommand(putParams));
 
-        const externalApiUrl = `http://demo:demo@23.20.56.240:8083/stream/demoStream/channel/${newChannelId}/add`;
+        const externalApiUrl = `http://demo:demo@rtsp-to-web:8083/stream/demoStream/channel/${newChannelId}/add`;
         const externalApiBody = {
             name: name,
             url: rtspUrl,
@@ -196,7 +196,7 @@ app.delete("/device/:channel", async (req, res) => {
     try {
         await docClient.send(new DeleteCommand(deleteParams));
 
-        const externalApiUrl = `http://demo:demo@23.20.56.240:8083/stream/demoStream/channel/${channel}/delete`;
+        const externalApiUrl = `http://demo:demo@rtsp-to-web:8083/stream/demoStream/channel/${channel}/delete`;
         await axios.get(externalApiUrl);
 
         res.status(200).json({ message: "Device deleted successfully" });
@@ -399,7 +399,7 @@ app.post('/youtube-to-rtsp', async (req, res) => {
         };
         await docClient.send(new PutCommand(putParams));
 
-        const externalApiUrl = `http://demo:demo@23.20.56.240:8083/stream/demoStream/channel/${newChannelId}/add`;
+        const externalApiUrl = `http://demo:demo@rtsp-to-web:8083/stream/demoStream/channel/${newChannelId}/add`;
         const externalApiBody = {
             name: name,
             url: rtspUrl,
@@ -583,7 +583,10 @@ app.post('/multiple-recordings', async (req, res) => {
         return res.status(400).json({ message: "Recording keys are required" });
     }
     try {
-        await axios.post(`http://${privateVmIp}:8084/multiple-recordings`, { recording_key });
+        await axios.post(`http://${privateVmIp}:8084/multiple-recordings`, { recording_key },
+            {
+                headers: { 'Content-Type': 'application/json' }
+            });
         res.status(200).json({ message: `Shared the following recordings: ${recording_key.join(", ")}` });
     } catch (error) {
         console.error('Error sharing recordings:', error);

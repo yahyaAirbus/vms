@@ -103,60 +103,18 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(json.dumps({"message": "Video URL is required"}).encode('utf-8'))
 
-    def handle_multiple_streams(self):
-        content_length = int(self.headers['Content-Length'])
-        post_data = self.rfile.read(content_length)
-        data = json.loads(post_data)
-        channels = data.get('channels', [])
-
-        if channels:
-            hls_urls = [
-                f"http://127.0.0.1:8083/stream/demoStream/channel/{channel}/hls/live/index.m3u8"
-                for channel in channels
-            ]
-
-            soup_sources = " ".join(
-                f"souphttpsrc location={url} ! hlsdemux ! decodebin ! videoconvert ! video/x-raw,format=RGBA ! queue ! comp.sink_{i} "
-                for i, url in enumerate(hls_urls)
-            )
-
-            sink_positions = " ".join(
-                f"sink_{i}::xpos={(i % 2) * 640} sink_{i}::ypos={(i // 2) * 360} sink_{i}::width=640 sink_{i}::height=360 sink_{i}::zorder={i} "
-                for i in range(len(hls_urls))
-            )
-
-            pipeline_str = (
-                f"{soup_sources} compositor name=comp {sink_positions} ! "
-                "video/x-raw,format=RGBA,width=1280,height=720 ! "
-                "videoconvert ! x264enc bitrate=512 speed-preset=ultrafast tune=zerolatency ! "
-                "rtph264pay name=pay0 pt=96"
-            )
-
-            my_server.factory.pipeline_str = pipeline_str
-            print(f"Set pipeline_str for multiple streams to: {my_server.factory.pipeline_str}")
-
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({"message": "Multiple streams combined"}).encode('utf-8'))
-        else:
-            print("No channels provided in the request.")
-            self.send_response(400)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({"message": "Channels are required"}).encode('utf-8'))
-
     def handle_multiple_recordings(self):
-        content_length = int(self.headers['Content-Length'])
-        post_data = self.rfile.read(content_length)
-        data = json.loads(post_data)
-        recording_keys = data.get('recording_keys', [])
+      content_length = int(self.headers['Content-Length'])
+      post_data = self.rfile.read(content_length)
+      data = json.loads(post_data)
+      recording_keys = data.get('recording_keys', [])
 
-        if recording_keys:
+      if recording_keys:
+        try:
             recording_urls = [f"https://d1gx8w5c0cotxv.cloudfront.net/{key}" for key in recording_keys]
 
             soup_sources = " ".join(
-                f"souphttpsrc location={url} ! decodebin ! videoconvert ! video/x-raw,format=RGBA ! queue ! comp.sink_{i} "
+                f"uridecodebin uri={url} name=src_{i} ! queue ! videoconvert ! video/x-raw,format=RGBA ! queue ! comp.sink_{i} "
                 for i, url in enumerate(recording_urls)
             )
 
@@ -179,12 +137,59 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.send_header('Content-type', 'application/json')
             self.end_headers()
             self.wfile.write(json.dumps({"message": "Multiple recordings combined"}).encode('utf-8'))
-        else:
-            print("No recording keys provided in the request.")
-            self.send_response(400)
+
+        except Exception as e:
+            print(f"Error creating multiple recordings pipeline: {e}")
+            self.send_response(500)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
-            self.wfile.write(json.dumps({"message": "Recording keys are required"}).encode('utf-8'))
+            self.wfile.write(json.dumps({"message": "Error processing recordings"}).encode('utf-8'))
+      else:
+        print("No recording keys provided in the request.")
+        self.send_response(400)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps({"message": "Recording keys are required"}).encode('utf-8'))
+
+    def handle_multiple_recordings(self):
+      content_length = int(self.headers['Content-Length'])
+      post_data = self.rfile.read(content_length)
+      data = json.loads(post_data)
+      recording_key = data.get('recording_key', [])
+
+      if recording_key:
+        recording_urls = [f"https://d1gx8w5c0cotxv.cloudfront.net/{key}" for key in recording_key]
+
+        soup_sources = " ".join(
+            f"souphttpsrc location={url} is-live=false do-timestamp=true ! queue ! decodebin ! videoconvert ! video/x-raw,format=RGBA ! queue ! comp.sink_{i} "
+            for i, url in enumerate(recording_urls)
+        )
+
+        sink_positions = " ".join(
+            f"sink_{i}::xpos={(i % 2) * 640} sink_{i}::ypos={(i // 2) * 360} sink_{i}::width=640 sink_{i}::height=360 sink_{i}::zorder={i} "
+            for i in range(len(recording_urls))
+        )
+
+        pipeline_str = (
+            f"{soup_sources} compositor name=comp {sink_positions} ! "
+            "video/x-raw,format=RGBA,width=1280,height=720 ! "
+            "videoconvert ! x264enc bitrate=512 speed-preset=ultrafast tune=zerolatency ! "
+            "rtph264pay name=pay0 pt=96"
+        )
+
+        my_server.factory.pipeline_str = pipeline_str
+        print(f"Set pipeline_str for multiple recordings to: {my_server.factory.pipeline_str}")
+
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps({"message": "Multiple recordings combined"}).encode('utf-8'))
+      else:
+          print("No recording keys provided in the request.")
+          self.send_response(400)
+          self.send_header('Content-type', 'application/json')
+          self.end_headers()
+          self.wfile.write(json.dumps({"message": "Recording keys are required"}).encode('utf-8'))
 
     def handle_404(self):
         self.send_response(404)
@@ -197,7 +202,7 @@ if __name__ == '__main__':
 
     my_server = MyServer()
     my_server.set_service("8554")
-    print(f"RTSP server is running at rtsp://23.20.56.240:8554/stream")
+    print(f"RTSP server is running at rtsp://23.23.65.133:8554/stream")
 
     http_server = HTTPServer(('0.0.0.0', 8084), RequestHandler)
     print("HTTP server is running at http://0.0.0.0:8084")
