@@ -11,7 +11,7 @@ const Share = ({ recording_key }) => {
 
     const handleShare = async () => {
         try {
-            await axios.post(`${vmIp}:3001/share-recording/${recording_key}`);
+            await axios.post(`http://${vmIp}:3001/share-recording/${recording_key}`);
             toast.success('Recording shared successfully!', {
                 position: "top-right",
                 autoClose: 5000,
@@ -37,7 +37,7 @@ const Share = ({ recording_key }) => {
 
     const handleShareMultipleRecordings = async () => {
         try {
-            const videoUrlArray = await axios.post(`${vmIp}:3001/multiple-recordings`, {
+            const videoUrlArray = await axios.post(`http://${vmIp}:3001/multiple-recordings`, {
                 recording_key,
             });
 

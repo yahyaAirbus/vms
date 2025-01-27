@@ -9,7 +9,7 @@ const Recording = ({ channel }) => {
     const startRecording = async (channelId) => {
         setIsRecording(true);
         try {
-            await axios.post(`${vmIp}:3001/record/start`, { channel: channelId });
+            await axios.post(`http://${vmIp}:3001/record/start`, { channel: channelId });
         } catch (error) {
             console.error('Error starting recording:', error);
         }

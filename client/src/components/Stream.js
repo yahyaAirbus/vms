@@ -11,7 +11,7 @@ const Stream = ({ channel, selectedChannels }) => {
     const vmIp = process.env.REACT_APP_VM_IP_PUBLIC
     const handleStream = async () => {
         try {
-            const response = await axios.post(`${vmIp}:3001/switch_stream`, { channel });
+            const response = await axios.post(`http://${vmIp}:3001/switch_stream`, { channel });
             console.log(`Switched to channel ${channel}:`, response.data.message);
             toast.success('successfuly streaming the video!', {
                 position: "top-right",

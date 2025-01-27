@@ -20,7 +20,7 @@ function Archive() {
     useEffect(() => {
         const fetchRecordings = async () => {
             try {
-                const response = await axios.get(`${vmIp}:3001/recordings`);
+                const response = await axios.get(`http://${vmIp}:3001/recordings`);
                 setRecordings(response.data);
             } catch (error) {
                 console.error('Error fetching recordings:', error);
@@ -32,7 +32,7 @@ function Archive() {
 
     const handleDelete = async (recordingKey) => {
         try {
-            await axios.delete(`${vmIp}:3001/recordings/${recordingKey}`);
+            await axios.delete(`http://${vmIp}:3001/recordings/${recordingKey}`);
             setRecordings((prevRecordings) =>
                 prevRecordings.filter((recording) => recording.key !== recordingKey)
             );

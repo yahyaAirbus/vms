@@ -12,7 +12,8 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (email, password) => {
         try {
-            const response = await axios.post(`${vmIp}:3001/Login`, { email, password });
+            const request_url = `http://${vmIp}:3001/Login`
+            const response = await axios.post(request_url, { email, password });
 
             if (response.status === 200) {
                 setIsLoggedIn(true);

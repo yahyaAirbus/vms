@@ -21,7 +21,7 @@ function AddExternalVid() {
         };
 
         try {
-            const response = await axios.post(`${vmIp}:3001/youtube-to-rtsp`, streamData);
+            const response = await axios.post(`http://${vmIp}:3001/youtube-to-rtsp`, streamData);
             console.log(response.data);
             toast.success('Stream added successfully!', {
                 position: "top-right",
@@ -55,7 +55,7 @@ function AddExternalVid() {
     };
     const triggerAnalytics = async (channel) => {
         try {
-            const response = await axios.post(`${vmIp}:3001/rtsp-analytics`, {
+            const response = await axios.post(`http://${vmIp}:3001/rtsp-analytics`, {
                 channel: channel
             });
             console.log("Analytics triggered:", response.data);

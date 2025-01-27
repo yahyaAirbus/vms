@@ -12,7 +12,7 @@ function Home() {
     const handleLinkClick = async (link) => {
         setActiveLink(link);
         try {
-            const response = await axios.get(`${vmIp}:3001/${link.toLowerCase()}`);
+            const response = await axios.get(`http://${vmIp}:3001/${link.toLowerCase()}`);
             setData(response.data);
         } catch (error) {
             console.error('Error fetching data:', error);

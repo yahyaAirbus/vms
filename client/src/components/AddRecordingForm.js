@@ -28,7 +28,7 @@ function AddRecordingForm() {
         formData.append('video', videoFile);
 
         try {
-            const response = await axios.post(`${vmIp}:3001/add-recording`, formData, {
+            const response = await axios.post(`http://${vmIp}:3001/add-recording`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -77,7 +77,7 @@ function AddRecordingForm() {
 
     const triggerAnalytics = async (recordingKey, startTime, endTime, timezone) => {
         try {
-            const response = await axios.post(`${vmIp}:3001/recording-analytics`, {
+            const response = await axios.post(`http://${vmIp}:3001/recording-analytics`, {
                 recordingKey: recordingKey,
                 startTime: startTime,
                 endTime: endTime,
