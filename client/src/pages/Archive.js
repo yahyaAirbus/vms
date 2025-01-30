@@ -102,7 +102,7 @@ function Archive() {
                                         />
                                     </div>
                                     <Share
-                                        recording_key={selectedRecordings}
+                                        recording_key={recording.key}
                                     />
 
 
